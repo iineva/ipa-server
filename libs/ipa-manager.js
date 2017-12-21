@@ -63,6 +63,7 @@ const add = async (file) => {
     name: info['CFBundleDisplayName'],
     version: info['CFBundleShortVersionString'],
     identifier: info['CFBundleIdentifier'],
+    build: info['CFBundleVersion'],
     date: new Date(),
   }
   appList.unshift(app)
