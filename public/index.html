@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
-  <title>OTA Server</title>
+  <title>ipa Server</title>
   <style type="text/css">
     * {
       padding: 0;
@@ -13,7 +13,7 @@
 
     /* form  */
     form {
-      display: flex;
+      display: none;
     }
     form .file {
       display: none;
@@ -30,6 +30,7 @@
     /* list */
     #list {
       display: block;
+      padding: 1em 0;
     }
     #list .row {
       /* background: #e6f7ff; */
@@ -80,28 +81,78 @@
   <div id="list"></div>
   <script type="text/javascript">
 
+    function isPC() {
+      const Agents = ["Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod"]
+      for (let v = 0; v < Agents.length; v++) {
+        if (window.navigator.userAgent.indexOf(Agents[v]) > 0) {
+          return false
+        }
+      }
+      console.log(window.navigator.userAgent)
+      return true
+    }
+
+    if (isPC()) {
+      document.querySelector('form').style.display = 'flex'
+    }
+
+    function fetch(url, opts={}, onProgress) {
+      return new Promise( (res, rej)=>{
+        var xhr = new XMLHttpRequest();
+        xhr.open(opts.method || 'get', url);
+        for (var k in opts.headers||{})
+            xhr.setRequestHeader(k, opts.headers[k]);
+        xhr.onload = e => res(JSON.parse(e.target.responseText));
+        xhr.onerror = rej;
+        if (xhr.upload && onProgress)
+            xhr.upload.onprogress = onProgress; // event.loaded / event.total * 100 ; //event.lengthComputable
+        xhr.send(opts.body);
+      });
+    }
+
+    function updateAddProgress(progress) {
+      const add = document.querySelector(".add-btn")
+      if (progress === 0) {
+        add.innerHTML = '添加'
+      } else if (progress === 1) {
+        add.innerHTML = 'Done!'
+        setTimeout(() => {
+          add.innerHTML = '添加'
+        }, 2000)
+      } else {
+        add.innerHTML = `${(progress*100).toFixed(2)}%`
+      }
+    }
+
+    let uploading = false
     document.querySelector(".file").addEventListener("change", e => {
       if (e.target.files.length === 0) {
         return;
       }
       const data = new FormData()
       data.append('file', e.target.files[0])
-      // TODO: show loading
+      uploading = true
       fetch('/api/upload', {
         method: 'POST',
         body: data,
-      }).then(res => {
-        // TODO: hide loading
+      }, progress => {
+        updateAddProgress(progress.loaded / progress.total)
+        console.log(progress)
+      }).then(json => {
         e.target.value = ''
+        uploading = false
         loadList()
+      }).catch(err => {
+        uploading = false
+        updateAddProgress(0)
       })
-    });
+    })
     document.querySelector(".add-btn").addEventListener("click", e => {
-      document.querySelector(".file").click()
+      uploading || document.querySelector(".file").click()
     })
 
     function loadList() {
-      fetch('/api/list').then(res => res.json()).then(list => {
+      fetch('/api/list').then(list => {
         document.querySelector('#list').innerHTML = list.map(row => `
           <div class='row'>
             <img src="${row.webIcon}" alt="">
