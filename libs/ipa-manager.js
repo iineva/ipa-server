@@ -65,6 +65,7 @@ const add = async (file) => {
     identifier: info['CFBundleIdentifier'],
     build: info['CFBundleVersion'],
     date: new Date(),
+    size: (await fs.lstat(file)).size,
   }
   appList.unshift(app)
   await fs.writeJson(appListFile, appList)
