@@ -136,7 +136,6 @@
         body: data,
       }, progress => {
         updateAddProgress(progress.loaded / progress.total)
-        console.log(progress)
       }).then(json => {
         e.target.value = ''
         uploading = false
