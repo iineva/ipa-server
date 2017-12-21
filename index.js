@@ -15,6 +15,10 @@ app.use(router.get('/api/list', async ctx => {
   ctx.body = ipaManager.list()
 }))
 
+app.use(router.get('/api/info/:id', async (ctx, id) => {
+  ctx.body = ipaManager.list().find(row => row.id === id)
+}))
+
 // 导入ipa
 app.use(router.post('/api/upload', upload({
   defExt: 'ipa',

@@ -1,0 +1,84 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+  <title>ipa Server</title>
+  <style type="text/css">
+    * {
+      padding: 0;
+      margin: 0;
+      font-size: 1em;
+      font-family: sans-serif;
+    }
+    #info {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #A9B1B3;
+      font-size: 1em;
+      padding: 4em 0;
+      font-weight: 100;
+    }
+    #info .name {
+      color: #505556;
+      font-size: 1.6em;
+      font-weight: 500;
+      margin: 1em 0;
+    }
+    #info img {
+      width: 7.5em;
+      height: 7.5em;
+      border-radius: 1.5em;
+      border: .5px solid #ccc;
+    }
+    #info .install {
+      background: #1890ff;
+      border-radius: 5em;
+      padding: 10px 5em;
+      font-size: 1em;
+      font-weight: 100;
+      color: #fff;
+      margin: 2em 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="info"></div>
+  <script type="text/javascript">
+    function query() {
+      const obj = {}
+      window.location.search.split('?')[1].split('&').map(row => {
+        const v = row.split('=')
+        if (v.length === 2) { obj[v[0]] = v[1] }
+      })
+      return obj
+    }
+    function sizeStr(size) {
+      const K = 1024, M = 1024 * K, G = 1024 * M
+      if (size > G) {
+        return `${(size/G).toFixed(2)} GB`
+      } else if (size > M) {
+        return `${(size / M).toFixed(2)} MB`
+      } else {
+        return `${(size / K).toFixed(2)} KB`
+      }
+    }
+    function loadInfo() {
+      fetch(`/api/info/${query().id}`).then(res => res.json()).then(row => {
+        document.querySelector('#info').innerHTML = `
+          <img src="${row.webIcon}" alt="">
+          <div class="name">${row.name}</div>
+          <div>内测版 - ${row.version}(Build ${row.build}) - ${sizeStr(row.size)}</div>
+          <div class='date'>更新于：${row.date}</div>
+          <div onclick="onClickInstall('${row.plist}')" class="install">下载安装</div>
+        `
+      })
+    }
+    function onClickInstall(plist) {
+      window.location.href = 'itms-services://?action=download-manifest&url=' + plist
+    }
+    window.addEventListener('load', loadInfo)
+  </script>
+</body>
+</html>
