@@ -1,0 +1,27 @@
+{
+  "name": "ipa-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "busboy": "^0.2.14",
+    "decompress-zip": "^0.3.0",
+    "fs-extra": "^5.0.0",
+    "koa": "^2.4.1",
+    "koa-route": "^3.2.0",
+    "koa-static": "^4.0.2",
+    "mime-types": "^2.1.17",
+    "moment": "^2.20.1",
+    "randomstring": "^1.1.5",
+    "simple-plist": "^0.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^1.14.1"
+  },
+  "scripts": {
+    "start": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

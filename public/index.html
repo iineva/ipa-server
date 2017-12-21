@@ -1,0 +1,127 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+  <title>OTA Server</title>
+  <style type="text/css">
+    * {
+      padding: 0;
+      margin: 0;
+      font-size: 1em;
+    }
+
+    /* form  */
+    form {
+      display: flex;
+    }
+    form .file {
+      display: none;
+    }
+    form .add-btn {
+      flex: 1;
+      border-bottom: .5px solid #ccc;
+      padding: .75em;
+      font-size: 1.2em;
+      color: #1890ff;
+      text-align: center;
+    }
+
+    /* list */
+    #list {
+      display: block;
+    }
+    #list .row {
+      /* background: #e6f7ff; */
+      padding: 0.75em;
+      flex: 1;
+      border-bottom: .5px solid #eee;
+      display: flex;
+      flex-direction: row;
+    }
+    #list .row img {
+      width: 4em;
+      height: 4em;
+      border-radius: 0.75em;
+      border: .5px solid #ccc;
+    }
+    #list .row .center {
+      flex: 1;
+      color: #999;
+      display: flex;
+      flex-direction: column;
+      margin: 0 0.5em;
+    }
+    #list .row .center .name {
+      color: #666;
+      font-size: 1.2em;
+    }
+    #list .row .center .date {
+      font-size: 0.75em;
+    }
+    #list .row .right {
+      border: 1px solid #1890ff;
+      border-radius: 4px;
+      color: #1890ff;
+      padding: 4px 14px;
+      align-self: center;
+    }
+    #list .row .right:active {
+      color: #333;
+      border-color: #333;
+    }
+  </style>
+</head>
+<body>
+  <form>
+    <input class="file" type="file" name="file" value="" accept=".ipa" />
+    <div class="add-btn">添加</div>
+  </form>
+  <div id="list"></div>
+  <script type="text/javascript">
+
+    document.querySelector(".file").addEventListener("change", e => {
+      if (e.target.files.length === 0) {
+        return;
+      }
+      const data = new FormData()
+      data.append('file', e.target.files[0])
+      // TODO: show loading
+      fetch('/api/upload', {
+        method: 'POST',
+        body: data,
+      }).then(res => {
+        // TODO: hide loading
+        e.target.value = ''
+        loadList()
+      })
+    });
+    document.querySelector(".add-btn").addEventListener("click", e => {
+      document.querySelector(".file").click()
+    })
+
+    function loadList() {
+      fetch('/api/list').then(res => res.json()).then(list => {
+        document.querySelector('#list').innerHTML = list.map(row => `
+          <div class='row'>
+            <img src="${row.webIcon}" alt="">
+            <div class="center">
+              <div class="name">${row.name}</div>
+              <div>${row.version}</div>
+              <div class='date'>更新时间：${row.date}</div>
+            </div>
+            <div onclick="onClickInstall('${row.plist}')" class="right">下载</div>
+          </div>
+        `).join('')
+      })
+    }
+
+    function onClickInstall(plist) {
+      window.location.href = 'itms-services://?action=download-manifest&url=' + plist
+    }
+
+    window.addEventListener('load', loadList)
+
+  </script>
+</body>
+</html>
