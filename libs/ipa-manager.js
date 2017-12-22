@@ -4,6 +4,7 @@ const config = require('../config')
 const fs = require('fs-extra')
 const path = require('path')
 const moment = require('moment')
+const pngdefry = require('pngdefry')
 
 // 设置moment语言
 moment.locale('zh-cn')
@@ -31,6 +32,10 @@ const decompress = (opt) => new Promise((resolve, reject) => {
   unzipper.on('error', reject)
   unzipper.on('extract', resolve)
   unzipper.extract(opt)
+})
+
+const fixPNG = (input, output) => new Promise((resolve, reject) => {
+  pngdefry(input, output, (err) => err ? reject() : resolve())
 })
 
 const add = async (file) => {
@@ -74,7 +79,7 @@ const add = async (file) => {
   // TODO: 设置upload目录
   const targetDir = path.resolve(__dirname, '../upload', app.identifier, app.id)
   await fs.move(file, path.join(targetDir, 'ipa.ipa'))
-  await fs.move(path.join(tmpDir, iconFile.path), path.join(targetDir, 'icon.png'))
+  await fixPNG(path.join(tmpDir, iconFile.path), path.join(targetDir, 'icon.png'))
 
   // 删除无用文件
   await fs.remove(tmpDir)

@@ -12,6 +12,7 @@
     "koa-static": "^4.0.2",
     "mime-types": "^2.1.17",
     "moment": "^2.20.1",
+    "pngdefry": "^1.1.6",
     "randomstring": "^1.1.5",
     "simple-plist": "^0.2.1"
   },
