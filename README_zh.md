@@ -1,10 +1,13 @@
 # ipa-server
 
-Upload and install IPA in web.
+使用浏览器上传和部署 `.ipa` 文件
 
-* [中文文档](README_zh.md)
+* 自动识别ipa包内信息
+* 自动生成图标
+* 开箱即用
+* 只需要一台低配云主机, 一个域名
 
-# Install
+# 安装部署
 
 ```
 $ git clone https://github.com/iineva/ipa-server
@@ -12,19 +15,19 @@ $ cd ipa-server
 $ docker-compose up -d
 ```
 
-# Test
+# 试用
 
-Open <http://<HOST_NAME>:9008> in your browser.
+打开在浏览器中打开 <http://<HOST_NAME>:9008>
 
-# Deploy
+# 正式部署
 
-* This server is not included SSL certificate. It must run behide the reverse proxy with HTTPS.
+* 本仓库代码不包含SSL证书部分，由于苹果在线安装必须具备HTTPS，所以本程序必须运行在HTTPS反向代理后端。
 
-* There is a simple way to setup a HTTPS with replace `docker-compose.yml` file:
+* 最简单的办法开启完整服务，使用下面的配置替换 `docker-compose.yml` 文件:
 
 ```
 
-# ***** Replace ALL <YOUR_DOMAIN> to you really domain *****
+# ***** 更换所有 <YOUR_DOMAIN> 成你的真实域名 *****
 
 version: "2"
 
@@ -54,8 +57,8 @@ services:
         }
 ```
 
-* now you can access *https://\<YOUR_DOMAIN\>* in your browser.
+* 现在你可以使用浏览器访问 *https://\<YOUR_DOMAIN\>*
 
-Home | Detail |
+首页 | 详情 |
  --- | ---
 ![](snapshot/1.png) | ![](snapshot/2.png)
