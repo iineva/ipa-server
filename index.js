@@ -8,7 +8,7 @@ const ipaManager = require('./libs/ipa-manager')
 const upload = require('./middle/upload')
 
 app.use(serve('./public'))
-app.use(serve('./upload'))
+app.use(serve('./upload'), {maxage: 1000 * 3600 * 24 * 365})
 
 // 获取app列表
 app.use(router.get('/api/list', async ctx => {
