@@ -61,4 +61,4 @@ services:
 
 首页 | 详情 |
  --- | ---
-![](snapshot/1.png) | ![](snapshot/2.png)
+![](snapshot/zh-cn/1.jpeg) | ![](snapshot/zh-cn/2.jpeg)

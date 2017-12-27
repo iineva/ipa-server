@@ -58,4 +58,4 @@ services:
 
 Home | Detail |
  --- | ---
-![](snapshot/1.png) | ![](snapshot/2.png)
+![](snapshot/en/1.jpeg) | ![](snapshot/en/2.jpeg)
