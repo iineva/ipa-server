@@ -6,9 +6,6 @@ const path = require('path')
 const moment = require('moment')
 const pngdefry = require('pngdefry')
 
-// 设置moment语言
-moment.locale('zh-cn')
-
 // 数据保存
 const appListFile = path.resolve(__dirname, '../upload/appList.json')
 const appList = []

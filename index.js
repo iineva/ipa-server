@@ -6,7 +6,19 @@ const config = require('./config')
 const { createPlistBody } = require('./libs/plist')
 const ipaManager = require('./libs/ipa-manager')
 const upload = require('./middle/upload')
+const locale = require('koa-locale')
+const moment = require('moment')
 
+// locale
+locale(app)
+app.use(async (ctx, next) => {
+  console.log(ctx.getLocaleFromCookie())
+  // 设置moment语言
+  moment.locale(ctx.getLocaleFromCookie())
+  await next()
+})
+
+// static files
 app.use(serve('./public'))
 app.use(serve('./upload', {maxage: 1000 * 3600 * 24 * 365}))
 

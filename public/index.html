@@ -4,6 +4,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
   <title>ipa Server</title>
+  <script type="text/javascript" src="/js/core.js"></script>
   <style type="text/css">
     * {
       padding: 0;
@@ -80,47 +81,23 @@
 <body>
   <form>
     <input class="file" type="file" name="file" value="" accept=".ipa" />
-    <div class="add-btn">添加</div>
+    <div class="add-btn">Add</div>
   </form>
   <div id="list"></div>
   <script type="text/javascript">
 
-    function isPC() {
-      const Agents = ["Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod"]
-      for (let v = 0; v < Agents.length; v++) {
-        if (window.navigator.userAgent.indexOf(Agents[v]) > 0) {
-          return false
-        }
-      }
-      return true
-    }
-
-    if (isPC()) {
+    if (IPA.isPC) {
       document.querySelector('form').style.display = 'flex'
-    }
-
-    function fetch(url, opts={}, onProgress) {
-      return new Promise( (res, rej)=>{
-        var xhr = new XMLHttpRequest()
-        xhr.open(opts.method || 'get', url)
-        for (var k in opts.headers||{})
-            xhr.setRequestHeader(k, opts.headers[k])
-        xhr.onload = e => res(JSON.parse(e.target.responseText))
-        xhr.onerror = rej
-        if (xhr.upload && onProgress)
-            xhr.upload.onprogress = onProgress
-        xhr.send(opts.body)
-      });
     }
 
     function updateAddProgress(progress) {
       const add = document.querySelector(".add-btn")
       if (progress === 0) {
-        add.innerHTML = '添加'
+        add.innerHTML = IPA.langString('Add')
       } else if (progress === 1) {
-        add.innerHTML = '上传成功！'
+        add.innerHTML = IPA.langString('Upload Done!')
         setTimeout(() => {
-          add.innerHTML = '添加'
+          add.innerHTML = IPA.langString('Add')
         }, 2000)
       } else {
         add.innerHTML = `${(progress*100).toFixed(2)}%`
@@ -135,7 +112,7 @@
       const data = new FormData()
       data.append('file', e.target.files[0])
       uploading = true
-      fetch('/api/upload', {
+      IPA.fetch('/api/upload', {
         method: 'POST',
         body: data,
       }, progress => {
@@ -154,16 +131,16 @@
     })
 
     function loadList() {
-      fetch('/api/list').then(list => {
+      IPA.fetch('/api/list').then(list => {
         document.querySelector('#list').innerHTML = list.map(row => `
           <a class='row' href="/app?id=${row.id}">
             <img src="${row.webIcon}" alt="">
             <div class="center">
               <div class="name">${row.name}</div>
               <div class="version">${row.version}(Build ${row.build})</div>
-              <div class="date">更新时间：${row.date}</div>
+              <div class="date">${IPA.langString('Upload Date: ')}${row.date}</div>
             </div>
-            <div onclick="onClickInstall('${row.plist}')" class="right">下载</div>
+            <div onclick="onClickInstall('${row.plist}')" class="right">${IPA.langString('Download')}</div>
           </a>
         `).join('')
       })
@@ -174,6 +151,7 @@
     }
 
     window.addEventListener('load', loadList)
+    document.querySelector('.add-btn').innerHTML = IPA.langString('Add')
 
   </script>
 </body>
