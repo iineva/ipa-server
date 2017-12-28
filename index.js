@@ -12,7 +12,6 @@ const moment = require('moment')
 // locale
 locale(app)
 app.use(async (ctx, next) => {
-  console.log(ctx.getLocaleFromCookie())
   // 设置moment语言
   moment.locale(ctx.getLocaleFromCookie())
   await next()
