@@ -73,7 +73,7 @@ const add = async (file) => {
   const info = plist.readFileSync(path.join(tmpDir, plistFile.path))
   const app = {
     id: path.basename(file, '.ipa'),
-    name: info['CFBundleDisplayName'],
+    name: info['CFBundleDisplayName'] || info['CFBundleName'] || info['CFBundleExecutable'],
     version: info['CFBundleShortVersionString'],
     identifier: info['CFBundleIdentifier'],
     build: info['CFBundleVersion'],
