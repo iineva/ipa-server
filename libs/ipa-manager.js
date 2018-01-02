@@ -32,7 +32,7 @@ const decompress = (opt) => new Promise((resolve, reject) => {
 })
 
 const fixPNG = (input, output) => new Promise((resolve, reject) => {
-  pngdefry(input, output, (err) => err ? reject() : resolve())
+  pngdefry(input, output, (err) => err ? reject(err) : resolve())
 })
 
 const add = async (file) => {
