@@ -8,7 +8,7 @@ Upload and install IPA in web.
 
 <https://ipa.ineva.cn>
 
-⚠️Note:
+⚠️ Note About This Demo:
 
 * For test only
 * Server is deploy in China
