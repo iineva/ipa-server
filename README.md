@@ -4,6 +4,17 @@ Upload and install IPA in web.
 
 * [中文文档](README_zh.md)
 
+# Online Demo
+
+<https://ipa.ineva.cn>
+
+⚠️Note:
+
+* For test only
+* Server is deploy in China
+* Bandwidth only 1Mb/s
+* DO NOT USE THIS ON PRODUCTION
+
 # Install
 
 ```
