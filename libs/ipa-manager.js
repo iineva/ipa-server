@@ -38,7 +38,7 @@ const fixPNG = (input, output) => new Promise((resolve, reject) => {
 const add = async (file) => {
 
   const tmpDir = '/tmp/cn.ineva.upload/unzip-tmp' // 缓存目录
-  let plistFile, iconFile
+  let plistFile, iconFiles = []
 
   // 解压相关文件
   await fs.remove(tmpDir)
@@ -49,12 +49,23 @@ const add = async (file) => {
       if (file.path.endsWith('.app/Info.plist')) {
         plistFile = file
         return true
-      } else if (file.path.endsWith('.app/AppIcon60x60@3x.png')) {
-        iconFile = file
+      } else if (file.path.match(/Payload\/\w*\.app\/AppIcon(\d+(\.\d+)?)x(\d+(\.\d+)?)(@\dx)?.*\.png$/)) {
+        iconFiles.push(file)
         return true
       } else {
         return false
       }
+    }
+  })
+
+  // 选择尺寸最大的图标
+  let iconFile, maxSize = 0
+  console.log(iconFiles.map(row => row.path))
+  iconFiles.forEach(file => {
+    const size = Number(path.basename(file.path).split('@')[0].split('x')[1].split('~')[0])
+    if (size > maxSize) {
+      maxSize = size
+      iconFile = file
     }
   })
 
@@ -76,7 +87,11 @@ const add = async (file) => {
   // TODO: 设置upload目录
   const targetDir = path.resolve(__dirname, '../upload', app.identifier, app.id)
   await fs.move(file, path.join(targetDir, 'ipa.ipa'))
-  await fixPNG(path.join(tmpDir, iconFile.path), path.join(targetDir, 'icon.png'))
+  try {
+    await fixPNG(path.join(tmpDir, iconFile.path), path.join(targetDir, 'icon.png'))
+  } catch (err) {
+    await fs.move(path.join(tmpDir, iconFile.path), path.join(targetDir, 'icon.png'))
+  }
 
   // 删除无用文件
   await fs.remove(tmpDir)
