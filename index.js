@@ -43,20 +43,20 @@ app.use(router.post('/api/upload', upload({
   }
 })))
 
-// 获取安装信息
+// get install plist
 app.use(router.get('/plist/:id.plist', async (ctx, id) => {
   const info = ipaManager.find(id)
   ctx.set('Content-disposition', `attachment; filename=${info.name}.plist`)
   ctx.body = createPlistBody(info)
 }))
 
-// 捕获错误
+// catch crash
 app.on('error', err => {
   console.error('*** SERVER ERROR ***\n', err)
   err.status !== 400 && config.debug && require('child_process').spawn('say', ['oh my god, crash!'])
 })
 
-// 启动服务
+// start service
 app.listen(config.port, config.host, ()=>{
   console.log(`Server started: http://${config.host}:${config.port}`)
 })
