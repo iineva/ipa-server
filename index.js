@@ -12,7 +12,7 @@ const moment = require('moment')
 // locale
 locale(app)
 app.use(async (ctx, next) => {
-  // 设置moment语言
+  // set moment language
   moment.locale(ctx.getLocaleFromCookie())
   await next()
 })
@@ -21,7 +21,7 @@ app.use(async (ctx, next) => {
 app.use(serve('./public'))
 app.use(serve('./upload', {maxage: 1000 * 3600 * 24 * 365}))
 
-// 获取app列表
+// get app list
 app.use(router.get('/api/list', async ctx => {
   ctx.body = ipaManager.list()
 }))
@@ -30,16 +30,16 @@ app.use(router.get('/api/info/:id', async (ctx, id) => {
   ctx.body = ipaManager.list().find(row => row.id === id)
 }))
 
-// 导入ipa
+// import ipa
 app.use(router.post('/api/upload', upload({
   defExt: 'ipa',
 }, async (ctx, files) => {
   try {
     await ipaManager.add(files[0])
-    ctx.body = { meg: '上传成功' }
+    ctx.body = { meg: 'Upload Done' }
   } catch (err) {
-    console.log('上传失败:', err)
-    ctx.body = { err: '上传失败' }
+    console.log('Upload fail:', err)
+    ctx.body = { err: 'Upload fail' }
   }
 })))
 
@@ -53,7 +53,7 @@ app.use(router.get('/plist/:id.plist', async (ctx, id) => {
 // 捕获错误
 app.on('error', err => {
   console.error('*** SERVER ERROR ***\n', err)
-  err.status !== 400 && config.debug && require('child_process').spawn('say', ['oh my god,崩溃了'])
+  err.status !== 400 && config.debug && require('child_process').spawn('say', ['oh my god, crash!'])
 })
 
 // 启动服务

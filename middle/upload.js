@@ -29,8 +29,8 @@ const saveStream = (stream, pathName)=>{
 }
 
 module.exports = (opt = {}, next) => {
-  opt.tempDir = opt.tempDir || '/tmp/cn.ineva.upload' // 默认缓存目录
-  opt.defExt = opt.defExt || 'jpg' // 默认后缀名
+  opt.tempDir = opt.tempDir || '/tmp/cn.ineva.upload' // default temp dir
+  opt.defExt = opt.defExt || 'jpg' // default ext
   return async (ctx) => {
     const files = []
     await receiveFiles(ctx.req, async (row)=>{

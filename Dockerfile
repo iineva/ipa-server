@@ -1,10 +1,10 @@
 FROM node:8.4.0
 MAINTAINER Steven <s@beeeye.cn>
 
-# 设置工作目录
+# set work dir
 WORKDIR /app
 
-# 安装依赖包,Copy代码
+# install package and copy code
 COPY package.json .
 COPY package-lock.json .
 RUN npm install --production --registry=https://registry.npm.taobao.org

@@ -1,5 +1,5 @@
 
-// 创建plist内容
+// create plist content
 const createPlistBody = (opt = {}) => `<?xml version="1.0" encoding="utf-8"?>
 <plist version="1.0">
   <dict>

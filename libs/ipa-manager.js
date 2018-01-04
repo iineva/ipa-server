@@ -6,11 +6,11 @@ const path = require('path')
 const moment = require('moment')
 const pngdefry = require('pngdefry')
 
-// 数据保存
+// store data
 const appListFile = path.resolve(__dirname, '../upload/appList.json')
 const appList = []
 
-// 初始化appList
+// init appList
 if (fs.pathExistsSync(appListFile)) {
   const list = fs.readJsonSync(appListFile)
   list.map(row => appList.push(row))
@@ -20,7 +20,7 @@ const list = () => appList.map(row => Object.assign({}, row, {
   ipa: `${config.publicURL}/${row.identifier}/${row.id}/ipa.ipa`,
   icon: `${config.publicURL}/${row.identifier}/${row.id}/icon.png`,
   plist: `${config.publicURL}/plist/${row.id}.plist`,
-  webIcon: `/${row.identifier}/${row.id}/icon.png`, // 用于web页面显示
+  webIcon: `/${row.identifier}/${row.id}/icon.png`, // to display on web
   date: moment(row.date).fromNow(),
 }))
 
@@ -37,7 +37,7 @@ const fixPNG = (input, output) => new Promise((resolve, reject) => {
 
 const add = async (file) => {
 
-  const tmpDir = '/tmp/cn.ineva.upload/unzip-tmp' // 缓存目录
+  const tmpDir = '/tmp/cn.ineva.upload/unzip-tmp' // temp dir
   let plistFile, iconFiles = []
 
   // unzip files
@@ -91,7 +91,7 @@ const add = async (file) => {
     }
   })
 
-  // 解析plist
+  // parse plist
   const info = plist.readFileSync(path.join(tmpDir, plistFile.path))
   const app = {
     id: path.basename(file, '.ipa'),
@@ -105,8 +105,8 @@ const add = async (file) => {
   appList.unshift(app)
   await fs.writeJson(appListFile, appList)
 
-  // 保存相关文件到指定目录
-  // TODO: 设置upload目录
+  // save files to target dir
+  // TODO: upload dir configable
   const targetDir = path.resolve(__dirname, '../upload', app.identifier, app.id)
   await fs.move(file, path.join(targetDir, 'ipa.ipa'))
   try {
@@ -115,7 +115,7 @@ const add = async (file) => {
     await fs.move(path.join(tmpDir, iconFile.path), path.join(targetDir, 'icon.png'))
   }
 
-  // 删除无用文件
+  // delete temp files
   await fs.remove(tmpDir)
 }
 
