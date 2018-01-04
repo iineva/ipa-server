@@ -40,7 +40,9 @@ const add = async (file) => {
   const tmpDir = '/tmp/cn.ineva.upload/unzip-tmp' // 缓存目录
   let plistFile, iconFiles = []
 
-  // 解压相关文件
+  // unzip files
+  const newIconRegular = /Payload\/\w*\.app\/AppIcon(\d+(\.\d+)?)x(\d+(\.\d+)?)(@\dx)?.*\.png$/
+  const oldIconRegular = /Payload\/\w*\.app\/Icon(-\d+(\.\d+)?)?.png$/
   await fs.remove(tmpDir)
   await decompress({
     file: file,
@@ -49,7 +51,10 @@ const add = async (file) => {
       if (file.path.endsWith('.app/Info.plist')) {
         plistFile = file
         return true
-      } else if (file.path.match(/Payload\/\w*\.app\/AppIcon(\d+(\.\d+)?)x(\d+(\.\d+)?)(@\dx)?.*\.png$/)) {
+      } else if (
+        file.path.match(newIconRegular) ||
+        file.path.match(oldIconRegular)
+      ) {
         iconFiles.push(file)
         return true
       } else {
@@ -58,11 +63,28 @@ const add = async (file) => {
     }
   })
 
-  // 选择尺寸最大的图标
+  // select max size icon
   let iconFile, maxSize = 0
   console.log(iconFiles.map(row => row.path))
   iconFiles.forEach(file => {
-    const size = Number(path.basename(file.path).split('@')[0].split('x')[1].split('~')[0])
+    let size = 0
+    if (file.path.match(oldIconRegular)) {
+      // parse old icons
+      const arr = path.basename(file.path, '.png').split('-')
+      if (arr.length === 2) {
+        size = Number(arr[1])
+      } else {
+        size = 160
+      }
+    } else {
+      // parse new icons
+      size = Number(path.basename(file.path, '.png').split('@')[0].split('x')[1].split('~')[0])
+      if (file.path.indexOf('@2x') !== -1) {
+        size *= 2
+      } else if (file.path.indexOf('@3x') !== -1) {
+        size *= 3
+      }
+    }
     if (size > maxSize) {
       maxSize = size
       iconFile = file
