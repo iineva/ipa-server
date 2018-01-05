@@ -65,7 +65,6 @@ const add = async (file) => {
 
   // select max size icon
   let iconFile, maxSize = 0
-  console.log(iconFiles.map(row => row.path))
   iconFiles.forEach(file => {
     let size = 0
     if (file.path.match(oldIconRegular)) {
