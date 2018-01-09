@@ -8,6 +8,7 @@ const ipaManager = require('./libs/ipa-manager')
 const upload = require('./middle/upload')
 const locale = require('koa-locale')
 const moment = require('moment')
+const path = require('path')
 
 // locale
 locale(app)
@@ -18,8 +19,8 @@ app.use(async (ctx, next) => {
 })
 
 // static files
-app.use(serve('./public'))
-app.use(serve('./upload', {maxage: 1000 * 3600 * 24 * 365}))
+app.use(serve(path.join(__dirname, 'public')))
+app.use(serve(path.join(__dirname, './upload'), {maxage: 1000 * 3600 * 24 * 365}))
 
 // get app list
 app.use(router.get('/api/list', async ctx => {
