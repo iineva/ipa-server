@@ -47,7 +47,7 @@ app.use(router.post('/api/upload', upload({
 // get install plist
 app.use(router.get('/plist/:id.plist', async (ctx, id) => {
   const info = ipaManager.find(id)
-  ctx.set('Content-Disposition', `attachment; filename=${info.identifier}.plist`)
+  ctx.set('Content-Disposition', `attachment; filename=${encodeURI(info.identifier)}.plist`)
   ctx.body = createPlistBody(info)
 }))
 
