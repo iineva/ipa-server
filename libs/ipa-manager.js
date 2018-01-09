@@ -6,8 +6,12 @@ const path = require('path')
 const moment = require('moment')
 const pngdefry = require('pngdefry')
 
+const uploadDir = path.resolve(__dirname, '../upload')
+
+fs.ensureDir(uploadDir)
+
 // store data
-const appListFile = path.resolve(__dirname, '../upload/appList.json')
+const appListFile = path.join(uploadDir, 'appList.json')
 const appList = []
 
 // init appList
@@ -106,7 +110,7 @@ const add = async (file) => {
 
   // save files to target dir
   // TODO: upload dir configable
-  const targetDir = path.resolve(__dirname, '../upload', app.identifier, app.id)
+  const targetDir = path.join(uploadDir, app.identifier, app.id)
   await fs.move(file, path.join(targetDir, 'ipa.ipa'))
   try {
     await fixPNG(path.join(tmpDir, iconFile.path), path.join(targetDir, 'icon.png'))
