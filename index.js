@@ -9,6 +9,7 @@ const upload = require('./middle/upload')
 const locale = require('koa-locale')
 const moment = require('moment')
 const path = require('path')
+const publicURL = require('./libs/public-url')
 
 // locale
 locale(app)
@@ -24,7 +25,7 @@ app.use(serve(config.uploadDir, {maxage: 1000 * 3600 * 24 * 365}))
 
 // get app list
 app.use(router.get('/api/list', async ctx => {
-  ctx.body = ipaManager.list()
+  ctx.body = ipaManager.list(publicURL(ctx))
 }))
 
 app.use(router.get('/api/info/:id', async (ctx, id) => {
@@ -46,7 +47,7 @@ app.use(router.post('/api/upload', upload({
 
 // get install plist
 app.use(router.get('/plist/:id.plist', async (ctx, id) => {
-  const info = ipaManager.find(id)
+  const info = ipaManager.find(id, publicURL(ctx))
   ctx.set('Content-Disposition', `attachment; filename=${encodeURI(info.identifier)}.plist`)
   ctx.body = createPlistBody(info)
 }))

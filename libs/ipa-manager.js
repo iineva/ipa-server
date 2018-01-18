@@ -20,10 +20,10 @@ if (fs.pathExistsSync(appListFile)) {
   list.map(row => appList.push(row))
 }
 
-const list = () => appList.map(row => Object.assign({}, row, {
-  ipa: `${config.publicURL}/${row.identifier}/${row.id}/ipa.ipa`,
-  icon: `${config.publicURL}/${row.identifier}/${row.id}/icon.png`,
-  plist: `${config.publicURL}/plist/${row.id}.plist`,
+const list = (publicURL) => appList.map(row => Object.assign({}, row, {
+  ipa: `${config.publicURL || publicURL}/${row.identifier}/${row.id}/ipa.ipa`,
+  icon: `${config.publicURL || publicURL}/${row.identifier}/${row.id}/icon.png`,
+  plist: `${config.publicURL || publicURL}/plist/${row.id}.plist`,
   webIcon: `/${row.identifier}/${row.id}/icon.png`, // to display on web
   date: moment(row.date).fromNow(),
 }))
@@ -122,7 +122,7 @@ const add = async (file) => {
   await fs.remove(tmpDir)
 }
 
-const find = id => list().find(row => row.id === id)
+const find = (id, publicURL) => list(publicURL).find(row => row.id === id)
 
 module.exports = {
   list,
