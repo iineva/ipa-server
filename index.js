@@ -29,7 +29,7 @@ app.use(router.get('/api/list', async ctx => {
 }))
 
 app.use(router.get('/api/info/:id', async (ctx, id) => {
-  ctx.body = ipaManager.list().find(row => row.id === id)
+  ctx.body = ipaManager.find(id, publicURL(ctx))
 }))
 
 // import ipa

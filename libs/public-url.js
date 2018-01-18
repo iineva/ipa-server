@@ -6,6 +6,6 @@ module.exports = ctx => {
     const u = url.parse(h.referer)
     return `${u.protocol}//${u.host}`
   } else {
-    return `http://${h.host}`
+    return `${h['x-forwarded-proto'] || 'http'}://${h.host}`
   }
 }
