@@ -6,7 +6,7 @@ const path = require('path')
 const moment = require('moment')
 const pngdefry = require('pngdefry')
 
-const uploadDir = path.resolve(__dirname, '../upload')
+const uploadDir = config.uploadDir
 
 fs.ensureDir(uploadDir)
 
