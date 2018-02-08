@@ -20,11 +20,19 @@ if (fs.pathExistsSync(appListFile)) {
   list.map(row => appList.push(row))
 }
 
+const iconPath = (publicURL, row) => {
+  if (row.noneIcon) {
+    return 'img/default.png'
+  } else {
+    return `${row.identifier}/${row.id}/icon.png`
+  }
+}
+
 const list = (publicURL) => appList.map(row => Object.assign({}, row, {
   ipa: `${config.publicURL || publicURL}/${row.identifier}/${row.id}/ipa.ipa`,
-  icon: `${config.publicURL || publicURL}/${row.identifier}/${row.id}/icon.png`,
+  icon: `${config.publicURL || publicURL}/${iconPath(publicURL, row)}`,
   plist: `${config.publicURL || publicURL}/plist/${row.id}.plist`,
-  webIcon: `/${row.identifier}/${row.id}/icon.png`, // to display on web
+  webIcon: `/${iconPath(publicURL, row)}`, // to display on web
   date: moment(row.date).fromNow(),
 }))
 
@@ -104,6 +112,7 @@ const add = async (file) => {
     build: info['CFBundleVersion'],
     date: new Date(),
     size: (await fs.lstat(file)).size,
+    noneIcon: !iconFile,
   }
   appList.unshift(app)
   await fs.writeJson(appListFile, appList)
@@ -112,10 +121,12 @@ const add = async (file) => {
   // TODO: upload dir configable
   const targetDir = path.join(uploadDir, app.identifier, app.id)
   await fs.move(file, path.join(targetDir, 'ipa.ipa'))
-  try {
-    await fixPNG(path.join(tmpDir, iconFile.path), path.join(targetDir, 'icon.png'))
-  } catch (err) {
-    await fs.move(path.join(tmpDir, iconFile.path), path.join(targetDir, 'icon.png'))
+  if (iconFile) {
+    try {
+      await fixPNG(path.join(tmpDir, iconFile.path), path.join(targetDir, 'icon.png'))
+    } catch (err) {
+      await fs.move(path.join(tmpDir, iconFile.path), path.join(targetDir, 'icon.png'))
+    }
   }
 
   // delete temp files
