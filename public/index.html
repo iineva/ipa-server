@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
   <title>IPA Server</title>
   <script type="text/javascript" src="/js/core.js"></script>
+  <script type="text/javascript" src="/js/layzr.min.js"></script>
   <style type="text/css">
     * {
       padding: 0;
@@ -131,11 +132,14 @@
       uploading || document.querySelector(".file").click()
     })
 
+    // init lazy load
+    const instance = Layzr()
+
     function loadList() {
       IPA.fetch('/api/list').then(list => {
         document.querySelector('#list').innerHTML = list.map(row => `
           <a class='row' href="/app?id=${row.id}">
-            <img src="${row.webIcon}" alt="">
+            <img data-normal="${row.webIcon}" alt="">
             <div class="center">
               <div class="name">${row.name}</div>
               <div class="version">${row.version}(Build ${row.build})</div>
@@ -144,6 +148,9 @@
             <div onclick="onClickInstall('${row.plist}')" class="right">${IPA.langString('Download')}</div>
           </a>
         `).join('')
+
+        // start lazy load
+        instance.update().check().handlers(true)
       })
     }
 
