@@ -20,8 +20,8 @@ app.use(async (ctx, next) => {
 })
 
 // static files
-app.use(serve(path.join(__dirname, 'public')))
-app.use(serve(config.uploadDir, {maxage: 1000 * 3600 * 24 * 365}))
+app.use(serve(path.join(__dirname, 'public'), {defer: true}))
+app.use(serve(config.uploadDir, {maxage: 1000 * 3600 * 24 * 365, defer: true}))
 
 // get app list
 app.use(router.get('/api/list', async ctx => {
