@@ -27,7 +27,7 @@ $ docker-compose up -d
 
 Open <http://<HOST_NAME>:9008> in your browser.
 
-# Deploy
+# Docker Deploy
 
 * This server is not included SSL certificate. It must run behide the reverse proxy with HTTPS.
 
@@ -64,6 +64,15 @@ services:
           proxy / localhost:9008
         }
 ```
+
+# Deploy Without Docker
+
+```shell
+# install node.js first
+npm install
+npm start
+```
+
 
 * now you can access *https://\<YOUR_DOMAIN\>* in your browser.
 
