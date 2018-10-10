@@ -52,7 +52,7 @@ services:
     volumes:
       - "/docker/data/ipa-server:/app/upload"
   caddy:
-    image: ineva/caddy:0.10.3
+    image: abiosoft/caddy:0.10.14
     restart: always
     network_mode: host
     entrypoint: |
