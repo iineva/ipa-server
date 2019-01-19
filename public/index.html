@@ -6,6 +6,7 @@
   <title>IPA Server</title>
   <script type="text/javascript" src="/js/core.js"></script>
   <script type="text/javascript" src="/js/layzr.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="css/core.css">
   <style type="text/css">
     * {
       padding: 0;
@@ -28,54 +29,6 @@
       font-size: 1.2em;
       color: #1890ff;
       text-align: center;
-    }
-
-    /* list */
-    #list {
-      display: block;
-      padding: 1em 0;
-    }
-    #list .row {
-      text-decoration: none;
-      padding: 0.75em;
-      flex: 1;
-      border-bottom: .5px solid #eee;
-      display: flex;
-      flex-direction: row;
-      font-weight: 100;
-    }
-    #list .row img {
-      width: 4em;
-      height: 4em;
-      border-radius: 20%;
-      box-shadow: 0 0 4px #eee;
-    }
-    #list .row .center {
-      flex: 1;
-      color: #999;
-      display: flex;
-      flex-direction: column;
-      margin: 0 0.5em;
-    }
-    #list .row .center .name {
-      color: #666;
-      font-size: 1.2em;
-      flex: 1;
-    }
-    #list .row .center .date,
-    #list .row .center .version {
-      font-size: 0.75em;
-    }
-    #list .row .right {
-      border: 1px solid #1890ff;
-      border-radius: 4px;
-      color: #1890ff;
-      padding: 4px 14px;
-      align-self: center;
-    }
-    #list .row .right:active {
-      color: #333;
-      border-color: #333;
     }
   </style>
 </head>
@@ -137,17 +90,7 @@
 
     function loadList() {
       IPA.fetch('/api/list').then(list => {
-        document.querySelector('#list').innerHTML = list.map(row => `
-          <a class='row' href="/app?id=${row.id}">
-            <img data-normal="${row.webIcon}" alt="">
-            <div class="center">
-              <div class="name">${row.name}</div>
-              <div class="version">${row.version}(Build ${row.build})</div>
-              <div class="date">${IPA.langString('Upload Date: ')}${row.date}</div>
-            </div>
-            <div onclick="onClickInstall('${row.plist}')" class="right">${IPA.langString('Download')}</div>
-          </a>
-        `).join('')
+        document.querySelector('#list').innerHTML = list.map(row => IPA.createItem(row)).join('')
 
         // start lazy load
         instance.update().check().handlers(true)

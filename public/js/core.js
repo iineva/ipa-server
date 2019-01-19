@@ -53,7 +53,10 @@
       },
       'Beta' : {
         'zh-cn': '内测版'
-      }
+      },
+      'Current': {
+        'zh-cn': '当前'
+      },
     }
     const lang = localStr[key][language().toLowerCase()]
     return lang ? lang : key
@@ -71,11 +74,26 @@
     }
   }
 
+  function createItem(row) {
+    return `
+      <a class='row' href="/app?id=${row.id}">
+        <img data-normal="${row.webIcon}" alt="">
+        <div class="center">
+          <div class="name">${row.name}${row.current?`<span class="tag">${langString('Current')}</span>`:''}</div>
+          <div class="version">${row.version}(Build ${row.build})</div>
+          <div class="date">${IPA.langString('Upload Date: ')}${row.date}</div>
+        </div>
+        <div onclick="onClickInstall('${row.plist}')" class="right">${IPA.langString('Download')}</div>
+      </a>
+    `
+  }
+
   exports.IPA = {
     fetch: fetch,
     isPC: isPC(),
     langString: langString,
     sizeStr: sizeStr,
+    createItem: createItem,
   }
 
 })(window)
