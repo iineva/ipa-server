@@ -49,21 +49,21 @@ services:
     environment:
       - NODE_ENV=production
       - PUBLIC_URL=https://<YOUR_DOMAIN>
-    ports:
-      - "9008:8080"
     volumes:
       - "/docker/data/ipa-server:/app/upload"
   caddy:
-    image: abiosoft/caddy:0.10.14
+    image: abiosoft/caddy:0.11.5
     restart: always
-    network_mode: host
+    ports:
+      - "80:80"
+      - "443:443"
     entrypoint: |
       sh -c 'echo "$$CADDY_CONFIG" > /etc/Caddyfile && /usr/bin/caddy --conf /etc/Caddyfile --log stdout'
     environment:
       CADDY_CONFIG: |
         <YOUR_DOMAIN> {
           gzip
-          proxy / localhost:9008
+          proxy / web:8080
         }
 ```
 
