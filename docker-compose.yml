@@ -7,7 +7,20 @@ services:
     restart: always
     environment:
       - NODE_ENV=production
-    ports:
-      - "9008:8080"
+      - PUBLIC_URL=https://im0ham3d.herokuapp.com/
     volumes:
       - "/docker/data/ipa-server:/app/upload"
+  caddy:
+    image: abiosoft/caddy:0.11.5
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    entrypoint: |
+      sh -c 'echo "$$CADDY_CONFIG" > /etc/Caddyfile && /usr/bin/caddy --conf /etc/Caddyfile --log stdout'
+    environment:
+      CADDY_CONFIG: |
+        <YOUR_DOMAIN> {
+          gzip
+          proxy / web:8080
+        }
