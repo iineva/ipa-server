@@ -76,6 +76,17 @@ npm start
 
 * now you can access *https://\<YOUR_DOMAIN\>* in your browser.
 
+# Upload Access Control
+
+Server side:
+
+Add `ACCESS_KEY` to system environment as password.
+
+Client side:
+
+Add same `ACCESS_KEY` to window.localStorage.
+
+
 Home | Detail |
  --- | ---
 ![](snapshot/en/1.jpeg) | ![](snapshot/en/2.jpeg)

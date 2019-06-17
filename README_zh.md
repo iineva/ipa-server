@@ -69,6 +69,18 @@ services:
 
 * 现在你可以使用浏览器访问 *https://\<YOUR_DOMAIN\>*
 
+
+# 上传访问控制
+
+服务端:
+
+添加系统环境变量 `ACCESS_KEY` 作为密码。
+
+客户端:
+
+添加一样的 `ACCESS_KEY` 到 window.localStorage。
+
+
 首页 | 详情 |
  --- | ---
 ![](snapshot/zh-cn/1.jpeg) | ![](snapshot/zh-cn/2.jpeg)
