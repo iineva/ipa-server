@@ -78,7 +78,7 @@ services:
 
 客户端:
 
-添加一样的 `ACCESS_KEY` 到 window.localStorage。
+浏览器访问: https://\<YOUR_DOMAIN\>/key.html?key=\<ACCESS_KEY\>
 
 
 首页 | 详情 |

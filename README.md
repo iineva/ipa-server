@@ -84,7 +84,7 @@ Add `ACCESS_KEY` to system environment as password.
 
 Client side:
 
-Add same `ACCESS_KEY` to window.localStorage.
+Browser open: https://\<YOUR_DOMAIN\>/key.html?key=\<ACCESS_KEY\>
 
 
 Home | Detail |
