@@ -1,5 +1,5 @@
 FROM node:8.4.0
-MAINTAINER Steven <s@beeeye.cn>
+MAINTAINER Steven <s@ineva.cn>
 
 # set work dir
 WORKDIR /app
@@ -7,7 +7,7 @@ WORKDIR /app
 # install package and copy code
 COPY package.json .
 COPY package-lock.json .
-RUN npm install --production --registry=https://registry.npm.taobao.org
+RUN npm install --production
 COPY . .
 
 VOLUME /app/upload
