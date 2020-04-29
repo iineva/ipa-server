@@ -130,6 +130,7 @@ const add = async (file) => {
     date: new Date(),
     size: (await fs.lstat(file)).size,
     noneIcon: !iconFile,
+    channel: info['channel'],
   }
   appList.unshift(app)
   await fs.writeJson(appListFile, appList)

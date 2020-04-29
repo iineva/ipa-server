@@ -68,6 +68,7 @@
         document.querySelector('#info').innerHTML = `
           <img src="${row.webIcon}" alt="">
           <div class="name">${row.name}</div>
+          <div>${row.channel && IPA.langString('Channel') + ': ' + row.channel || ''}</div>
           <div>${IPA.langString('Beta')} - ${row.version}(Build ${row.build}) - ${IPA.sizeStr(row.size)}</div>
           <div class='date'>${IPA.langString('Upload Date: ')}${row.date}</div>
           <div onclick="onClickInstall('${row.plist}')" class="install">${IPA.langString('Download and Install')}</div>

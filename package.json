@@ -21,7 +21,7 @@
     "nodemon": "^1.14.1"
   },
   "scripts": {
-    "start": "nodemon index.js",
+    "start": "nodemon index.js -i public/",
     "docker-build": "docker build -t ineva/ipa-server .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

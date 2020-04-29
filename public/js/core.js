@@ -57,6 +57,9 @@
       'Current': {
         'zh-cn': '当前'
       },
+      'Channel': {
+        'zh-cn': '渠道'
+      }
     }
     const lang = localStr[key][language().toLowerCase()]
     return lang ? lang : key
@@ -80,7 +83,10 @@
         <img data-normal="${row.webIcon}" alt="">
         <div class="center">
           <div class="name">${row.name}${row.current?`<span class="tag">${langString('Current')}</span>`:''}</div>
-          <div class="version">${row.version}(Build ${row.build})</div>
+          <div class="version">
+            <span>${row.version}(Build ${row.build})</span>
+            <span>${row.channel && IPA.langString('Channel') + ': '+row.channel || ''}</span>
+          </div>
           <div class="date">${IPA.langString('Upload Date: ')}${row.date}</div>
         </div>
         <div onclick="onClickInstall('${row.plist}')" class="right">${IPA.langString('Download')}</div>
