@@ -64,7 +64,7 @@
     }
     function loadInfo() {
 
-      IPA.fetch(`/api/info/${query().id}`).then(row => {
+      IPA.fetch(`/api/info/${query().id}?v=${parseInt(new Date().getTime() / 1000)}`).then(row => {
         document.querySelector('#info').innerHTML = `
           <img src="${row.webIcon}" alt="">
           <div class="name">${row.name}</div>

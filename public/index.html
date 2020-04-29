@@ -64,7 +64,7 @@
 
     function getApiUrl(path) {
       if (window.localStorage.getItem('ACCESS_KEY')) {
-        return path + '?key=' + window.localStorage.getItem('ACCESS_KEY')
+        return path + '?key=' + window.localStorage.getItem('ACCESS_KEY') + `&v=${parseInt(new Date().getTime() / 1000)}`
       }
       return path
     }

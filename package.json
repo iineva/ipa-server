@@ -22,6 +22,7 @@
   },
   "scripts": {
     "start": "nodemon index.js",
+    "docker-build": "docker build -t ineva/ipa-server .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
