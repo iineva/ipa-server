@@ -70,8 +70,8 @@ const add = async (file) => {
   let plistFile, iconFiles = []
 
   // unzip files
-  const newIconRegular = /Payload\/\w*\.app\/AppIcon-?(\d+(\.\d+)?)x(\d+(\.\d+)?)(@\dx)?.*\.png$/
-  const oldIconRegular = /Payload\/\w*\.app\/Icon-?(\d+(\.\d+)?)?.png$/
+  const newIconRegular = /Payload\/.*\.app\/AppIcon-?(\d+(\.\d+)?)x(\d+(\.\d+)?)(@\dx)?.*\.png$/
+  const oldIconRegular = /Payload\/.*\.app\/Icon-?(\d+(\.\d+)?)?.png$/
   await fs.remove(tmpDir)
   await decompress({
     file: file,
