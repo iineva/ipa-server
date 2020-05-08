@@ -41,7 +41,7 @@ version: "2"
 
 services:
   web:
-    build: .
+    image: ineva/ipa-server:latest
     container_name: ipa-server
     restart: always
     environment:
