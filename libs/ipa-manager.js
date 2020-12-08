@@ -61,6 +61,8 @@ const decompress = (opt) => new Promise((resolve, reject) => {
 })
 
 const fixPNG = (input, output) => new Promise((resolve, reject) => {
+  input = input.replace(/ /g, "\\ ")                                                       
+  output = output.replace(/ /g, "\\ ")
   pngdefry(input, output, (err) => err ? reject(err) : resolve())
 })
 
