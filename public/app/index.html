@@ -110,7 +110,7 @@
       window.location.href = 'itms-services://?action=download-manifest&url=' + plist
     }
     function onClickDelete(id) {
-      if (!confirm("请按按钮")) {
+      if (!confirm(IPA.langString('Confirm to Delete?'))) {
         return
       }
       IPA.fetch(IPA.getApiUrl('/api/delete'), {

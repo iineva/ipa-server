@@ -72,7 +72,10 @@
                 },
                 'Back to home?': {
                     'zh-cn': '是否返回首页？'
-                }
+                },
+                'Confirm to Delete?': {
+                    'zh-cn': '确认删除？'
+                },
             }
             const lang = (localStr[key] || key)[language().toLowerCase()]
             return lang ? lang : key
