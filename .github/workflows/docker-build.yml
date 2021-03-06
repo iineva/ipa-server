@@ -20,7 +20,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - if: github.event_name == "release"
+      - if: github.event_name == 'release'
         name: Build and push release
         uses: docker/build-push-action@v2
         with:
@@ -28,7 +28,7 @@ jobs:
           push: true
           tags: ineva/ipa-server:latest,ineva/ipa-server:${{ github.event.release.tag_name }}
 
-      - if: github.ref == "refs/heads/main"
+      - if: github.ref == 'refs/heads/main'
         name: Build and push dev
         uses: docker/build-push-action@v2
         with:
