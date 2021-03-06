@@ -62,13 +62,6 @@
       }
     }
 
-    function getApiUrl(path) {
-      if (window.localStorage.getItem('ACCESS_KEY')) {
-        return path + '?key=' + window.localStorage.getItem('ACCESS_KEY') + `&v=${parseInt(new Date().getTime() / 1000)}`
-      }
-      return path
-    }
-
     let uploading = false
     window.onbeforeunload = () => uploading ? true : undefined
     document.querySelector(".file").addEventListener("change", e => {
@@ -78,7 +71,7 @@
       const data = new FormData()
       data.append('file', e.target.files[0])
       uploading = true
-      IPA.fetch(getApiUrl('/api/upload'), {
+      IPA.fetch(IPA.getApiUrl('/api/upload'), {
         method: 'POST',
         body: data,
       }, progress => {
@@ -104,7 +97,7 @@
     const instance = Layzr()
 
     function loadList() {
-      IPA.fetch(getApiUrl('/api/list')).then(list => {
+      IPA.fetch(IPA.getApiUrl('/api/list')).then(list => {
         document.querySelector('#list').innerHTML = list.map(row => IPA.createItem(row)).join('')
 
         // start lazy load
