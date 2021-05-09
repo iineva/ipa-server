@@ -84,9 +84,13 @@
     }
 
     function loadInfo() {
-
-      IPA.fetch(`/api/info/${query().id}?v=${parseInt(new Date().getTime() / 1000)}`).then(row => {
+      if (IPA.isInAppBrowser) {
         document.querySelector('#info').innerHTML = `
+          <div>${IPA.langString("Click the button in the upper right corner, and then in the pop-up menu, click 'Open in Safari' to install.")}</div>
+        `;
+      } else {
+        IPA.fetch(`/api/info/${query().id}?v=${parseInt(new Date().getTime() / 1000)}`).then(row => {
+          document.querySelector('#info').innerHTML = `
           <img class="icon" src="${row.webIcon}" alt="">
           <div class="name">${row.name}</div>
           <div>${row.channel && IPA.langString('Channel') + ': ' + row.channel || ''}</div>
@@ -98,13 +102,14 @@
           <div class="qrcode"></div>
           <div onclick="onClickInstall('${row.plist}')" class="install">${IPA.langString('Download and Install')}</div>
         `
-        document.querySelector('#list').innerHTML = row.history.map(row => IPA.createItem(row)).join('')
+          document.querySelector('#list').innerHTML = row.history.map(row => IPA.createItem(row)).join('')
 
-        createQRCode();
+          createQRCode();
 
-        // start lazy load
-        instance.update().check().handlers(true)
-      })
+          // start lazy load
+          instance.update().check().handlers(true)
+        })
+      }
     }
     function onClickInstall(plist) {
       window.location.href = 'itms-services://?action=download-manifest&url=' + plist
@@ -126,7 +131,7 @@
           alert(json.err)
           return
         }
-        
+
         if (confirm(`${json.msg}\n${IPA.langString('Back to home?')}`)) {
           window.location.href = '/'
         }

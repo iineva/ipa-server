@@ -33,6 +33,22 @@
             return true
         }
 
+        function isInAppBrowser() {
+          /**
+           * MicroMessenger => WeChat
+           * QQ/ => QQ
+           * AliApp => Taobao / Alipay
+           */
+            const Agents = ["MicroMessenger", "QQ/", "AliApp"]
+            for (let v = 0; v < Agents.length; v++) {
+                if (window.navigator.userAgent.indexOf(Agents[v]) > 0) {
+                    return true
+                }
+            }
+            return false
+        }
+
+
         function language() {
             return (navigator.language || navigator.browserLanguage)
         }
@@ -76,6 +92,9 @@
                 'Confirm to Delete?': {
                     'zh-cn': '确认删除？'
                 },
+                "Click the button in the upper right corner, and then in the pop-up menu, click 'Open in Safari' to install.": {
+                    'zh-cn': '点击右上角按钮，然后在弹出的菜单中，点击"在Safari中打开"，即可安装。'
+                },
             }
             const lang = (localStr[key] || key)[language().toLowerCase()]
             return lang ? lang : key
@@ -115,6 +134,7 @@
   exports.IPA = {
     fetch: fetch,
     isPC: isPC(),
+    isInAppBrowser: isInAppBrowser(),
     langString: langString,
     sizeStr: sizeStr,
     createItem: createItem,
