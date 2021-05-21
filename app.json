@@ -6,8 +6,8 @@
     ],
     "env": {
         "PUBLIC_URL": {
-            "description": "Public URL",
-            "value": "$DOMAIN"
+            "description": "Public URL, default to $DOMAIN",
+            "value": ""
         }
     },
     "website": "https://github.com/iineva/ipa-server",
