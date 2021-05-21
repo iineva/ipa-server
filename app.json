@@ -1,0 +1,22 @@
+{
+    "name": "ipa-server",
+    "description": "Deploy templates on Heroku.",
+    "keywords": [
+        "ipa-server"
+    ],
+    "env": {
+        "PUBLIC_URL": {
+            "description": "Public URL, default to use $DOMAIN",
+            "required": false,
+            "value": ""
+        },
+        "ACCESS_KEY": {
+            "description": "Detail: https://github.com/iineva/ipa-server#upload-access-control",
+            "required": false,
+            "value": ""
+        }
+    },
+    "website": "https://github.com/iineva/ipa-server",
+    "repository": "https://github.com/iineva/ipa-server",
+    "stack": "container"
+}

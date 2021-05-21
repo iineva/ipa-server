@@ -1,0 +1,13 @@
+version: "2"
+
+services:
+  web:
+    build: .
+    container_name: ipa-server
+    restart: always
+    environment:
+      - NODE_ENV=production
+    ports:
+      - "9008:8080"
+    volumes:
+      - "/docker/data/ipa-server:/app/upload"

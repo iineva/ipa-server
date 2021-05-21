@@ -1,0 +1,37 @@
+name: Publish Docker image
+on:
+  push:
+    branches:
+      - main
+  release:
+    types: [published]
+
+jobs:
+  push_to_registry:
+    name: Push Docker image to GitHub Packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - if: github.event_name == 'release'
+        name: Build and push release
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: ineva/ipa-server:latest,ineva/ipa-server:${{ github.event.release.tag_name }}
+
+      - if: github.ref == 'refs/heads/main'
+        name: Build and push dev
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: ineva/ipa-server:dev
