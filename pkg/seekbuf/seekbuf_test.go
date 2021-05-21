@@ -1,0 +1,3 @@
+package seekbuf
+
+// TODO: test
