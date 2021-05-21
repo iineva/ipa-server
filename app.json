@@ -6,7 +6,8 @@
     ],
     "env": {
         "PUBLIC_URL": {
-            "description": "Public URL, default to $DOMAIN",
+            "description": "Public URL, default to use $DOMAIN",
+            "required": false,
             "value": ""
         }
     },
