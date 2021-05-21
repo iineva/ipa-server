@@ -6,7 +6,10 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"log"
+	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -32,8 +35,10 @@ var (
 )
 
 const (
-	newIconRegular   = `^Payload\/.*\.app\/AppIcon-?(\d+(\.\d+)?)x(\d+(\.\d+)?)(@\dx)?.*\.png$`
-	oldIconRegular   = `^Payload\/.*\.app\/Icon-?(\d+(\.\d+)?)?.png$`
+	// Payload/UnicornApp.app/AppIcon_TikTok76x76@2x~ipad.png
+	// Payload/UnicornApp.app/AppIcon76x76.png
+	newIconRegular   = `^Payload\/.*\.app\/AppIcon-?_?\w*(\d+(\.\d+)?)x(\d+(\.\d+)?)(@\dx)?(~ipad)?\.png$`
+	oldIconRegular   = `^Payload\/.*\.app\/Icon-?_?\w*(\d+(\.\d+)?)?.png$`
 	infoPlistRegular = `^Payload\/.*\.app/Info.plist$`
 )
 
@@ -45,11 +50,9 @@ func ReadPlist(readerAt io.ReaderAt, size int64) (*IPA, error) {
 	}
 
 	// match files
-	var plistFile, oldIconFile, newIconFile *zip.File
+	var plistFile *zip.File
+	var iconFiles []*zip.File
 	for _, f := range r.File {
-		if plistFile != nil && (oldIconFile != nil || newIconFile != nil) {
-			break
-		}
 
 		// parse Info.plist
 		match, err := regexp.MatchString(infoPlistRegular, f.Name)
@@ -69,7 +72,7 @@ func ReadPlist(readerAt io.ReaderAt, size int64) (*IPA, error) {
 				return nil, err
 			}
 			if match {
-				oldIconFile = f
+				iconFiles = append(iconFiles, f)
 			}
 		}
 
@@ -80,7 +83,7 @@ func ReadPlist(readerAt io.ReaderAt, size int64) (*IPA, error) {
 				return nil, err
 			}
 			if match {
-				newIconFile = f
+				iconFiles = append(iconFiles, f)
 			}
 		}
 	}
@@ -88,6 +91,22 @@ func ReadPlist(readerAt io.ReaderAt, size int64) (*IPA, error) {
 	if plistFile == nil {
 		return nil, ErrInfoPlistNotFound
 	}
+
+	// select bigest icon file
+	var iconFile *zip.File
+	var maxSize = -1
+	for _, f := range iconFiles {
+		size, err := IconSize(f.Name)
+		if err != nil {
+			return nil, err
+		}
+		if size > maxSize {
+			maxSize = size
+			iconFile = f
+		}
+	}
+	// TODO: save icon file
+	log.Printf("TODO: save icon file: %s", iconFile.Name)
 
 	// parse Info.plist
 	var ipa *IPA
@@ -115,12 +134,39 @@ func ReadPlist(readerAt io.ReaderAt, size int64) (*IPA, error) {
 			Channel:    info.GetString("channel"),
 			Date:       time.Now(),
 			Size:       size,
-			NoneIcon:   newIconFile == nil && oldIconFile == nil,
+			NoneIcon:   iconFile != nil,
 			original:   info,
 		}
 	}
 
 	return ipa, nil
+}
+
+func IconSize(fileName string) (s int, err error) {
+	size := float64(0)
+	match, _ := regexp.MatchString(oldIconRegular, fileName)
+	name := strings.TrimSuffix(filepath.Base(fileName), ".png")
+	if match {
+		arr := strings.Split(name, "-")
+		if len(arr) == 2 {
+			size, err = strconv.ParseFloat(arr[1], 32)
+		} else {
+			size = 160
+		}
+	}
+	match, _ = regexp.MatchString(newIconRegular, fileName)
+	if match {
+		s := strings.Split(name, "@")[0]
+		s = strings.Split(s, "x")[1]
+		s = strings.Split(s, "~")[0]
+		size, err = strconv.ParseFloat(s, 32)
+		if strings.Index(name, "@2x") != -1 {
+			size *= 2
+		} else if strings.Index(name, "@3x") != -1 {
+			size *= 3
+		}
+	}
+	return int(size), err
 }
 
 // get args until arg is not empty
