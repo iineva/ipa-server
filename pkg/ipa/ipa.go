@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/iineva/ipa-server/pkg/common"
 	"github.com/iineva/ipa-server/pkg/plist"
 )
 
@@ -127,7 +128,7 @@ func ReadPlist(readerAt io.ReaderAt, size int64) (*IPA, error) {
 		}
 		ipa = &IPA{
 			ID:         strings.Replace(uuid.NewString(), "-", "", -1),
-			Name:       def(info.GetString("CFBundleDisplayName"), info.GetString("CFBundleName"), info.GetString("CFBundleExecutable")),
+			Name:       common.Def(info.GetString("CFBundleDisplayName"), info.GetString("CFBundleName"), info.GetString("CFBundleExecutable")),
 			Version:    info.GetString("CFBundleShortVersionString"),
 			Identifier: info.GetString("CFBundleIdentifier"),
 			Build:      info.GetString("CFBundleVersion"),
@@ -167,14 +168,4 @@ func IconSize(fileName string) (s int, err error) {
 		}
 	}
 	return int(size), err
-}
-
-// get args until arg is not empty
-func def(args ...string) string {
-	for _, v := range args {
-		if v != "" {
-			return v
-		}
-	}
-	return ""
 }
