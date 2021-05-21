@@ -1,5 +1,5 @@
 FROM node:8.4.0
-MAINTAINER Steven <s@ineva.cn>
+LABEL maintainer="Steven <s@ineva.cn>"
 
 # set work dir
 WORKDIR /app

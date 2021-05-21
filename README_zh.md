@@ -29,6 +29,11 @@ $ docker-compose up -d
 
 打开在浏览器中打开 <http://<HOST_NAME>:9008>
 
+# Heroku 部署
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
+
 # 正式部署
 
 * 本仓库代码不包含SSL证书部分，由于苹果在线安装必须具备HTTPS，所以本程序必须运行在HTTPS反向代理后端。
