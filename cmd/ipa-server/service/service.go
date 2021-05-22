@@ -4,14 +4,17 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"sync"
 	"time"
 
 	"github.com/iineva/ipa-server/pkg/ipa"
+	"github.com/iineva/ipa-server/pkg/seekbuf"
+	"github.com/iineva/ipa-server/pkg/storager"
 )
 
 // Item to use on web interface
 type Item struct {
-	ipa.IPA
+	ipa.AppInfo
 
 	Ipa string `json:"ipa"`
 	// Icon to display on iOS desktop
@@ -40,40 +43,25 @@ type Service interface {
 	Find(id string, publicURL string) (*Item, error)
 	History(id string, publicURL string) ([]*Item, error)
 	Delete(id string) error
-	Add(io.Reader) error
+	Add(r io.Reader, size int64) error
 }
 
 type service struct {
-	list []*ipa.IPA
+	list  []*ipa.AppInfo
+	lock  sync.RWMutex
+	store storager.Storager
 }
 
-func New() Service {
+func New(store storager.Storager) Service {
 	return &service{
-		list: []*ipa.IPA{{
-			ID:         "364f38fb19c247eaa7f3fb1e8d5fc79e",
-			Name:       "Test",
-			Version:    "1.0",
-			Identifier: "com.ineva.test",
-			Build:      "129",
-			Channel:    "",
-			Date:       time.Now(),
-			Size:       1204 * 1024 * 10,
-			NoneIcon:   true,
-		}, {
-			ID:         "215b468df5a04d3a8fb22d4478c88f1d",
-			Name:       "Test",
-			Version:    "1.0",
-			Identifier: "com.ineva.test",
-			Build:      "128",
-			Channel:    "",
-			Date:       time.Now(),
-			Size:       1204 * 1024,
-			NoneIcon:   true,
-		}},
+		store: store,
+		list:  []*ipa.AppInfo{},
 	}
 }
 
 func (s *service) List(publicURL string) ([]*Item, error) {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
 	list := []*Item{}
 	for _, row := range s.list {
 		has := false
@@ -94,6 +82,8 @@ func (s *service) List(publicURL string) ([]*Item, error) {
 }
 
 func (s *service) Find(id string, publicURL string) (*Item, error) {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
 	app, err := s.find(id)
 	if err != nil {
 		return nil, err
@@ -105,6 +95,8 @@ func (s *service) Find(id string, publicURL string) (*Item, error) {
 }
 
 func (s *service) History(id string, publicURL string) ([]*Item, error) {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
 	app, err := s.find(id)
 	if err != nil {
 		return nil, err
@@ -113,15 +105,29 @@ func (s *service) History(id string, publicURL string) ([]*Item, error) {
 }
 
 func (s *service) Delete(id string) error {
-	// TODO:
-	return nil
-}
-func (s *service) Add(io.Reader) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	// TODO:
 	return nil
 }
 
-func (s *service) find(id string) (*ipa.IPA, error) {
+func (s *service) Add(r io.Reader, size int64) error {
+	buf, err := seekbuf.Open(r, seekbuf.FileMode)
+	defer buf.Close()
+	if err != nil {
+		return err
+	}
+	app, err := ipa.ParseAndStorageIPA(buf, size, s.store)
+	if err != nil {
+		return err
+	}
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.list = append([]*ipa.AppInfo{app}, s.list...)
+	return nil
+}
+
+func (s *service) find(id string) (*ipa.AppInfo, error) {
 	for _, row := range s.list {
 		if row.ID == id {
 			return row, nil
@@ -130,9 +136,9 @@ func (s *service) find(id string) (*ipa.IPA, error) {
 	return nil, ErrIdNotFound
 }
 
-func itemInfo(row *ipa.IPA, publicURL string) *Item {
+func itemInfo(row *ipa.AppInfo, publicURL string) *Item {
 	return &Item{
-		IPA:     *row,
+		AppInfo: *row,
 		Ipa:     fmt.Sprintf("%s/%s/%s/ipa.ipa", publicURL, row.Identifier, row.ID),
 		Icon:    fmt.Sprintf("%s/%s", publicURL, iconPath(row)),
 		Plist:   fmt.Sprintf("%s/plist/%v.plist", publicURL, row.ID),
@@ -141,7 +147,7 @@ func itemInfo(row *ipa.IPA, publicURL string) *Item {
 	}
 }
 
-func (s *service) history(row *ipa.IPA, publicURL string) []*Item {
+func (s *service) history(row *ipa.AppInfo, publicURL string) []*Item {
 	list := []*Item{}
 	for _, i := range s.list {
 		if i.Identifier == row.Identifier {
@@ -153,7 +159,7 @@ func (s *service) history(row *ipa.IPA, publicURL string) []*Item {
 	return list
 }
 
-func iconPath(row *ipa.IPA) string {
+func iconPath(row *ipa.AppInfo) string {
 	if row.NoneIcon {
 		return "img/default.png"
 	}

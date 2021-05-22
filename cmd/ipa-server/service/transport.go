@@ -5,18 +5,24 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"regexp"
 
 	"github.com/go-kit/kit/endpoint"
-	"github.com/google/uuid"
 	"github.com/iineva/ipa-server/pkg/common"
 )
 
 type param struct {
 	publicURL string
 	id        string
+}
+
+type addParam struct {
+	file multipart.File
+	size int64
 }
 
 type data interface{}
@@ -43,6 +49,18 @@ func MakeFindEndpoint(srv Service) endpoint.Endpoint {
 	}
 }
 
+func MakeAddEndpoint(srv Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		p := request.(addParam)
+		defer p.file.Close()
+		err := srv.Add(p.file, p.size)
+		if err != nil {
+			return nil, err
+		}
+		return map[string]string{"msg": "ok"}, nil
+	}
+}
+
 func DecodeListRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	return param{publicURL: publicURL(r)}, nil
 }
@@ -52,12 +70,26 @@ func DecodeFindRequest(_ context.Context, r *http.Request) (interface{}, error) 
 	if id == "" {
 		return nil, ErrIdInvalid
 	}
-	_, err := uuid.Parse(id)
-	if err != nil {
+
+	const idRegexp = `^[2-9a-zA-Z]{22,32}$`
+	if match, err := regexp.MatchString(idRegexp, id); err != nil || !match {
 		// TODO: log error
 		return nil, ErrIdInvalid
 	}
 	return param{publicURL: publicURL(r), id: id}, nil
+}
+
+func DecodeAddRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	if r.Method != http.MethodPost {
+		return nil, errors.New("404")
+	}
+
+	err := r.ParseMultipartForm(0)
+	if err != nil {
+		return nil, err
+	}
+	file, handler, err := r.FormFile("file")
+	return addParam{file: file, size: handler.Size}, nil
 }
 
 func EncodeResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {

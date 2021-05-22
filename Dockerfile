@@ -1,15 +1,14 @@
-FROM node:8.4.0
+# build server
+FROM golang:1.16 AS builder-server
+COPY go.mod /src/
+COPY go.sum /src/
+RUN cd /src && go mod download
+COPY . /src/
+RUN cd /src && CGO_ENABLED=0 go build cmd/ipa-server/ipa-server.go
+
+# runtime
+FROM ineva/alpine:3.10.3
 LABEL maintainer="Steven <s@ineva.cn>"
-
-# set work dir
 WORKDIR /app
-
-# install package and copy code
-COPY package.json .
-COPY package-lock.json .
-RUN npm install --production
-COPY . .
-
-VOLUME /app/upload
-
-CMD ["node", "index.js"]
+COPY --from=builder-server /src/ipa-server /app
+ENTRYPOINT /app/ipa-server

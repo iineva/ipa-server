@@ -4,21 +4,25 @@ import (
 	"archive/zip"
 	"bytes"
 	"errors"
+	"image/png"
 	"io"
 	"io/ioutil"
-	"log"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/lithammer/shortuuid"
+	"github.com/poolqa/CgbiPngFix/ipaPng"
+
 	"github.com/iineva/ipa-server/pkg/common"
 	"github.com/iineva/ipa-server/pkg/plist"
+	"github.com/iineva/ipa-server/pkg/seekbuf"
+	"github.com/iineva/ipa-server/pkg/storager"
 )
 
-type IPA struct {
+type AppInfo struct {
 	ID         string      `json:"id"`
 	Name       string      `json:"name"`
 	Version    string      `json:"version"`
@@ -29,6 +33,12 @@ type IPA struct {
 	Size       int64       `json:"size"`
 	NoneIcon   bool        `json:"noneIcon"`
 	original   plist.Plist `json:"-"`
+}
+
+type IpaReader interface {
+	io.ReaderAt
+	io.Reader
+	io.Seeker
 }
 
 var (
@@ -43,7 +53,7 @@ const (
 	infoPlistRegular = `^Payload\/.*\.app/Info.plist$`
 )
 
-func ReadPlist(readerAt io.ReaderAt, size int64) (*IPA, error) {
+func ParseAndStorageIPA(readerAt IpaReader, size int64, store storager.Storager) (*AppInfo, error) {
 
 	r, err := zip.NewReader(readerAt, size)
 	if err != nil {
@@ -106,11 +116,9 @@ func ReadPlist(readerAt io.ReaderAt, size int64) (*IPA, error) {
 			iconFile = f
 		}
 	}
-	// TODO: save icon file
-	log.Printf("TODO: save icon file: %s", iconFile.Name)
 
 	// parse Info.plist
-	var ipa *IPA
+	var app *AppInfo
 	{
 		pf, err := plistFile.Open()
 		defer pf.Close()
@@ -126,8 +134,8 @@ func ReadPlist(readerAt io.ReaderAt, size int64) (*IPA, error) {
 		if err != nil {
 			return nil, err
 		}
-		ipa = &IPA{
-			ID:         strings.Replace(uuid.NewString(), "-", "", -1),
+		app = &AppInfo{
+			ID:         NewAppID(),
 			Name:       common.Def(info.GetString("CFBundleDisplayName"), info.GetString("CFBundleName"), info.GetString("CFBundleExecutable")),
 			Version:    info.GetString("CFBundleShortVersionString"),
 			Identifier: info.GetString("CFBundleIdentifier"),
@@ -135,12 +143,46 @@ func ReadPlist(readerAt io.ReaderAt, size int64) (*IPA, error) {
 			Channel:    info.GetString("channel"),
 			Date:       time.Now(),
 			Size:       size,
-			NoneIcon:   iconFile != nil,
+			NoneIcon:   iconFile == nil,
 			original:   info,
 		}
 	}
 
-	return ipa, nil
+	if iconFile != nil {
+		// try fix png for browser
+		f, err := iconFile.Open()
+		defer f.Close()
+		buf, _ := seekbuf.Open(f, seekbuf.MemoryMode)
+		defer buf.Close()
+		var pngInput io.Reader = buf
+		if err == nil {
+			if err == nil {
+				cgbi, err := ipaPng.Decode(buf)
+				if err == nil {
+					b := bytes.NewBuffer(make([]byte, 0))
+					err = png.Encode(b, cgbi.Img)
+					if err == nil {
+						// if png fix done, reset pngInput
+						pngInput = b
+					}
+				}
+			}
+
+			// save icon file
+			buf.Seek(0, 0)
+			if err := store.Save(pngInput, filepath.Join(app.Identifier, app.ID, "icon.png")); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	// save ipa file
+	readerAt.Seek(0, 0)
+	if err := store.Save(readerAt, filepath.Join(app.Identifier, app.ID, "ipa.ipa")); err != nil {
+		return nil, err
+	}
+
+	return app, nil
 }
 
 func IconSize(fileName string) (s int, err error) {
@@ -168,4 +210,8 @@ func IconSize(fileName string) (s int, err error) {
 		}
 	}
 	return int(size), err
+}
+
+func NewAppID() string {
+	return shortuuid.New()
 }

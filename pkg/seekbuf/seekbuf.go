@@ -7,8 +7,6 @@ import (
 	"io"
 	"os"
 	"sync"
-
-	"github.com/google/uuid"
 )
 
 // Buffer type
@@ -45,7 +43,7 @@ var (
 func Open(r io.Reader, m Mode) (*Buffer, error) {
 	switch m {
 	case FileMode:
-		f, err := os.Create(newCacheFileName())
+		f, err := os.CreateTemp("", "seekbuf-")
 		if err != nil {
 			return nil, err
 		}
@@ -138,8 +136,4 @@ func (b *Buffer) Seek(offset int64, whence int) (int64, error) {
 	}
 
 	return int64(b.pos), nil
-}
-
-func newCacheFileName() string {
-	return fmt.Sprintf("/tmp/%s.buf", uuid.NewString())
 }

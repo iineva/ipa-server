@@ -10,47 +10,6 @@ import (
 	"github.com/go-kit/kit/log/level"
 )
 
-// type logmw struct {
-// 	logger log.Logger
-// 	Service
-// }
-
-// func LoggingMiddleware(logger log.Logger, debug bool) ServiceMiddleware {
-// 	if debug {
-// 		logger = level.NewFilter(logger, level.AllowDebug())
-// 	} else {
-// 		logger = level.NewFilter(logger, level.AllowInfo())
-// 	}
-// 	return func(next Service) Service {
-// 		return logmw{logger, next}
-// 	}
-// }
-
-// func (mw logmw) List(publicURL string) ([]Item, error) {
-// 	defer func(begin time.Time) {
-// 		level.Info(logging).Log(
-// 			"err", err,
-// 			"took", time.Since(begin),
-// 		)
-// 		level.Debug(logging).Log(
-// 			"request", fmt.Sprintf("%+v", request),
-// 			"response", fmt.Sprintf("%+v", response),
-// 		)
-// 	}(time.Now())
-// 	return mw.Service.List(publicURL)
-// }
-
-// func (mw logmw) log() {
-// 	level.Info(mw.logger).Log(
-// 		"err", err,
-// 		"took", time.Since(begin),
-// 	)
-// 	level.Debug(logging).Log(
-// 		"request", fmt.Sprintf("%+v", request),
-// 		"response", fmt.Sprintf("%+v", response),
-// 	)
-// }
-
 func LoggingMiddleware(logger log.Logger, name string, debug bool) endpoint.Middleware {
 	return func(next endpoint.Endpoint) endpoint.Endpoint {
 		var logging log.Logger
