@@ -1,5 +1,11 @@
 (function(exports) {
 
+        dayjs.extend(window.dayjs_plugin_relativeTime)
+        var lan = window.navigator.language
+        if (lan.startsWith("zh")) {
+            dayjs.locale("zh-cn")
+        }
+
         // fetch with progress
         function fetch(url, opts = {}, onProgress) {
             return new Promise((res, rej) => {
@@ -105,7 +111,7 @@
             <span>${row.version}(Build ${row.build})</span>
             <span>${row.channel && IPA.langString('Channel') + ': '+row.channel || ''}</span>
           </div>
-          <div class="date">${IPA.langString('Upload Date: ')}${row.date}</div>
+          <div class="date">${IPA.langString('Upload Date: ')}${dayjs(row.date).fromNow()}</div>
         </div>
         <div onclick="onClickInstall('${row.plist}')" class="right">${IPA.langString('Download')}</div>
       </a>
