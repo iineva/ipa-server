@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"sort"
 	"sync"
 	"time"
 
@@ -44,10 +45,11 @@ type Service interface {
 	History(id string, publicURL string) ([]*Item, error)
 	Delete(id string) error
 	Add(r io.Reader, size int64) error
+	MigrateOldData(list []*ipa.AppInfo) error
 }
 
 type service struct {
-	list  []*ipa.AppInfo
+	list  ipa.AppList
 	lock  sync.RWMutex
 	store storager.Storager
 }
@@ -55,7 +57,7 @@ type service struct {
 func New(store storager.Storager) Service {
 	return &service{
 		store: store,
-		list:  []*ipa.AppInfo{},
+		list:  ipa.AppList{},
 	}
 }
 
@@ -124,6 +126,14 @@ func (s *service) Add(r io.Reader, size int64) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	s.list = append([]*ipa.AppInfo{app}, s.list...)
+	return nil
+}
+
+func (s *service) MigrateOldData(list []*ipa.AppInfo) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.list = append(list, s.list...)
+	sort.Sort(s.list)
 	return nil
 }
 

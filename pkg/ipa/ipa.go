@@ -35,6 +35,12 @@ type AppInfo struct {
 	original   plist.Plist `json:"-"`
 }
 
+type AppList []*AppInfo
+
+func (a AppList) Len() int           { return len(a) }
+func (a AppList) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a AppList) Less(i, j int) bool { return a[i].Date.After(a[j].Date) }
+
 type IpaReader interface {
 	io.ReaderAt
 	io.Reader

@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
@@ -13,6 +15,7 @@ import (
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/iineva/ipa-server/cmd/ipa-server/service"
 	"github.com/iineva/ipa-server/pkg/httpfs"
+	"github.com/iineva/ipa-server/pkg/ipa"
 	"github.com/iineva/ipa-server/pkg/storager"
 	"github.com/iineva/ipa-server/public"
 )
@@ -38,7 +41,7 @@ func redirect(m map[string]string, next http.Handler) http.Handler {
 func main() {
 
 	debug := flag.Bool("d", false, "enable debug logging")
-	storageDir := flag.String("dir", "data", "data storage dir")
+	storageDir := flag.String("dir", "upload", "upload data storage dir")
 	flag.Usage = usage
 	flag.Parse()
 
@@ -76,11 +79,20 @@ func main() {
 	uploadFS := afero.NewBasePathFs(afero.NewOsFs(), *storageDir)
 	staticFS := httpfs.New(
 		http.FS(public.FS),
-		http.FS(httpfs.NewAferoFS(uploadFS)),
+		httpfs.NewAferoFS(uploadFS),
 	)
 	serve.Handle("/", redirect(map[string]string{
 		"/key": "/key.html",
 	}, http.FileServer(staticFS)))
+
+	// try migrate old version data
+	err := tryMigrateOldData(uploadFS, srv)
+	if err != nil {
+		logger.Log(
+			"msg", "migrate old version data err",
+			"err", err.Error(),
+		)
+	}
 
 	logger.Log("msg", fmt.Sprintf("SERVER LISTEN ON: http://%v", host))
 	logger.Log("msg", http.ListenAndServe(host, serve))
@@ -91,4 +103,27 @@ func usage() {
 Options:
 `)
 	flag.PrintDefaults()
+}
+
+func tryMigrateOldData(uploadFS afero.Fs, srv service.Service) error {
+	f, err := uploadFS.Open("appList.json")
+	if err != nil {
+		return err
+	}
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		return err
+	}
+
+	list := ipa.AppList{}
+	if err := json.Unmarshal(b, &list); err != nil {
+		return err
+	}
+	if err := srv.MigrateOldData(list); err != nil {
+		return err
+	}
+
+	// TODO: delete old file
+
+	return nil
 }

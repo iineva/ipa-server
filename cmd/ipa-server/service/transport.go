@@ -71,7 +71,7 @@ func DecodeFindRequest(_ context.Context, r *http.Request) (interface{}, error) 
 		return nil, ErrIdInvalid
 	}
 
-	const idRegexp = `^[2-9a-zA-Z]{22,32}$`
+	const idRegexp = `^[0-9a-zA-Z]{16,32}$`
 	if match, err := regexp.MatchString(idRegexp, id); err != nil || !match {
 		// TODO: log error
 		return nil, ErrIdInvalid
