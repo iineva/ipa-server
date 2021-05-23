@@ -17,7 +17,7 @@ type AppInfo struct {
 	Date       time.Time   `json:"date"`
 	Size       int64       `json:"size"`
 	NoneIcon   bool        `json:"noneIcon"`
-	original   plist.Plist `json:"-"`
+	Metadata   plist.Plist `json:"metadata"` // metadata from Info.plist
 }
 
 type AppList []*AppInfo

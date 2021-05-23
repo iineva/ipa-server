@@ -1,6 +1,8 @@
 package service
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -8,6 +10,7 @@ import (
 	"path/filepath"
 	"sort"
 	"sync"
+	"time"
 
 	"github.com/iineva/ipa-server/pkg/ipa"
 	"github.com/iineva/ipa-server/pkg/seekbuf"
@@ -16,7 +19,15 @@ import (
 
 // Item to use on web interface
 type Item struct {
-	ipa.AppInfo
+	// from ipa.AppInfo
+	ID         string    `json:"id"`
+	Name       string    `json:"name"`
+	Date       time.Time `json:"date"`
+	Size       int64     `json:"size"`
+	Channel    string    `json:"channel"`
+	Build      string    `json:"build"`
+	Version    string    `json:"version"`
+	Identifier string    `json:"identifier"`
 
 	Ipa string `json:"ipa"`
 	// Icon to display on iOS desktop
@@ -33,6 +44,8 @@ type Item struct {
 func (i *Item) String() string {
 	return fmt.Sprintf("%+v", *i)
 }
+
+const metadataName = "appList.json"
 
 var (
 	ErrIdNotFound = errors.New("id not found")
@@ -139,13 +152,23 @@ func (s *service) Add(r io.Reader, size int64) error {
 	if err != nil {
 		return err
 	}
+
+	// parse and save ipa
 	app, err := ipa.ParseAndStorageIPA(buf, size, s.store)
 	if err != nil {
 		return err
 	}
+
+	// update list
 	s.lock.Lock()
-	defer s.lock.Unlock()
 	s.list = append([]*ipa.AppInfo{app}, s.list...)
+	d, err := json.Marshal(s.list)
+	s.lock.Unlock()
+
+	// save metadata
+	b := bytes.NewBuffer(d)
+	s.store.Save(metadataName, b)
+
 	return nil
 }
 
@@ -202,7 +225,16 @@ func (s *service) servicePublicURL(publicURL, name string) string {
 
 func (s *service) itemInfo(row *ipa.AppInfo, publicURL string) *Item {
 	return &Item{
-		AppInfo: *row,
+		// from ipa.AppInfo
+		ID:         row.ID,
+		Name:       row.Name,
+		Date:       row.Date,
+		Size:       row.Size,
+		Build:      row.Build,
+		Identifier: row.Identifier,
+		Version:    row.Version,
+		Channel:    row.Channel,
+
 		Ipa:     s.storagerPublicURL(publicURL, row.IpaStorageName()),
 		Icon:    s.storagerPublicURL(publicURL, iconPath(row)),
 		Plist:   s.servicePublicURL(publicURL, fmt.Sprintf("plist/%v.plist", row.ID)),

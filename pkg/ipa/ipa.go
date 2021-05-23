@@ -131,7 +131,7 @@ func ParseAndStorageIPA(readerAt IpaReader, size int64, store storager.Storager)
 			Date:       time.Now(),
 			Size:       size,
 			NoneIcon:   iconFile == nil,
-			original:   info,
+			Metadata:   info,
 		}
 	}
 

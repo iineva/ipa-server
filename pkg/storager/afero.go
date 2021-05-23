@@ -2,7 +2,6 @@ package storager
 
 import (
 	"io"
-	"log"
 	"net/url"
 	"path/filepath"
 
@@ -49,7 +48,6 @@ func (f *oferoStorager) Delete(name string) error {
 }
 
 func (f *oferoStorager) PublicURL(publicURL, name string) (string, error) {
-	log.Print(publicURL, " ", name)
 	u, err := url.Parse(publicURL)
 	if err != nil {
 		return "", err
