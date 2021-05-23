@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -124,7 +123,6 @@ func (q *qiniuStorager) OpenMetadata(name string) (io.ReadCloser, error) {
 	}
 
 	u := storage.MakePublicURL(q.domain.String(), targetName)
-	log.Print(u)
 	resp, err := http.Get(u)
 	if err != nil {
 		return nil, err
