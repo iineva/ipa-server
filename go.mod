@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/go-kit/kit v0.10.0
-	github.com/google/uuid v1.2.0 // indirect
+	github.com/google/uuid v1.2.0
 	// TODO: wait PR merge github.com/poolqa/CgbiPngFix master
 	github.com/iineva/CgbiPngFix v0.0.0-20210523041253-b8869b346914
 	github.com/lithammer/shortuuid v3.0.0+incompatible

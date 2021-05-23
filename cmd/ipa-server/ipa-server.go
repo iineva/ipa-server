@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log"
+	"github.com/google/uuid"
 	"github.com/spf13/afero"
 
 	httptransport "github.com/go-kit/kit/transport/http"
@@ -41,9 +42,9 @@ func main() {
 	debug := flag.Bool("d", false, "enable debug logging")
 	storageDir := flag.String("dir", "upload", "upload data storage dir")
 	publicURL := flag.String("public-url", "", "server public url")
-	metadataPath := flag.String("mata-path", "appList.json", "metadata storage path, use random file name to keep your metadata save")
-	qiniuConfig := flag.String("qiniu", "", "qiniu config AK:SK:[ZONE]:BUCKET:")
-	ossURL := flag.String("oss-url", "", "OSS access public url")
+	metadataPath := flag.String("mata-path", "appList.json", "metadata storage path, use random secret path to keep your metadata safer")
+	qiniuConfig := flag.String("qiniu", "", "qiniu config AK:SK:[ZONE]:BUCKET")
+	qiniuURL := flag.String("qiniu-url", "", "qiniu public url, https://cdn.example.com")
 	flag.Usage = usage
 	flag.Parse()
 
@@ -55,9 +56,9 @@ func main() {
 	logger = log.With(logger, "ts", log.TimestampFormat(time.Now, "2006-01-02 15:04:05.000"), "caller", log.DefaultCaller)
 
 	var store storager.Storager
-	if *ossURL != "" {
+	if *qiniuConfig != "" {
 		args := strings.Split(*qiniuConfig, ":")
-		s, err := storager.NewQiniuStorager(args[0], args[1], args[2], args[3], *ossURL)
+		s, err := storager.NewQiniuStorager(args[0], args[1], args[2], args[3], *qiniuURL)
 		if err != nil {
 			panic(err)
 		}
@@ -108,6 +109,8 @@ func main() {
 	)
 	serve.Handle("/", redirect(map[string]string{
 		"/key": "/key.html",
+		// random path to block local metadata
+		fmt.Sprintf("/%s", *metadataPath): fmt.Sprintf("/%s", uuid.NewString()),
 	}, http.FileServer(staticFS)))
 
 	logger.Log("msg", fmt.Sprintf("SERVER LISTEN ON: http://%v", host))
