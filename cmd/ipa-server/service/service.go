@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"sort"
 	"sync"
-	"time"
 
 	"github.com/iineva/ipa-server/pkg/ipa"
 	"github.com/iineva/ipa-server/pkg/seekbuf"
@@ -26,8 +25,6 @@ type Item struct {
 	Plist string `json:"plist"`
 	// WebIcon to display on web
 	WebIcon string `json:"webIcon"`
-	// Date
-	Date time.Time `json:"date"`
 
 	Current bool    `json:"current"`
 	History []*Item `json:"history,omitempty"`
@@ -210,7 +207,6 @@ func (s *service) itemInfo(row *ipa.AppInfo, publicURL string) *Item {
 		Icon:    s.storagerPublicURL(publicURL, iconPath(row)),
 		Plist:   s.servicePublicURL(publicURL, fmt.Sprintf("plist/%v.plist", row.ID)),
 		WebIcon: s.storagerPublicURL(publicURL, iconPath(row)),
-		Date:    time.Now(),
 	}
 }
 
