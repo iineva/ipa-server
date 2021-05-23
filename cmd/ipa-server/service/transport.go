@@ -64,6 +64,17 @@ func MakeAddEndpoint(srv Service) endpoint.Endpoint {
 	}
 }
 
+func MakeDeleteEndpoint(srv Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		p := request.(param)
+		err := srv.Delete(p.id)
+		if err != nil {
+			return nil, err
+		}
+		return map[string]string{"msg": "ok"}, nil
+	}
+}
+
 func MakePlistEndpoint(srv Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		p := request.(param)
@@ -88,7 +99,7 @@ func DecodeFindRequest(_ context.Context, r *http.Request) (interface{}, error) 
 		return nil, ErrIdInvalid
 	}
 
-	if err := matchID(id); err != nil {
+	if err := tryMatchID(id); err != nil {
 		return nil, ErrIdInvalid
 	}
 	return param{publicURL: publicURL(r), id: id}, nil
@@ -108,10 +119,28 @@ func DecodeAddRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	return addParam{file: file, size: handler.Size}, nil
 }
 
+func DecodeDeleteRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	// http://localhost/api/delete
+	if r.Method != http.MethodPost {
+		return nil, errors.New("404")
+	}
+	p := map[string]string{}
+	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
+		return nil, err
+	}
+
+	id := p["id"]
+	if err := tryMatchID(id); err != nil {
+		return nil, err
+	}
+
+	return param{id: id}, nil
+}
+
 func DecodePlistRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	// http://localhost/plist/{id}.plist
 	id := strings.TrimSuffix(filepath.Base(r.URL.Path), ".plist")
-	if err := matchID(id); err != nil {
+	if err := tryMatchID(id); err != nil {
 		return nil, ErrIdInvalid
 	}
 
@@ -147,7 +176,7 @@ func publicURL(ctx *http.Request) string {
 	return fmt.Sprintf("%v://%v", common.Def(xProto, "http"), host)
 }
 
-func matchID(id string) error {
+func tryMatchID(id string) error {
 	const idRegexp = `^[0-9a-zA-Z]{16,32}$`
 	match, err := regexp.MatchString(idRegexp, id)
 	if err != nil {

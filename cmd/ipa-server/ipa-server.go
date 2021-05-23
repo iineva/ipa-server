@@ -82,6 +82,11 @@ func main() {
 		service.DecodeAddRequest,
 		service.EncodeJsonResponse,
 	)
+	deleteHandler := httptransport.NewServer(
+		service.LoggingMiddleware(logger, "/api/delete", *debug)(service.MakeDeleteEndpoint(srv)),
+		service.DecodeDeleteRequest,
+		service.EncodeJsonResponse,
+	)
 	plistHandler := httptransport.NewServer(
 		service.LoggingMiddleware(logger, "/plist", *debug)(service.MakePlistEndpoint(srv)),
 		service.DecodePlistRequest,
@@ -92,6 +97,7 @@ func main() {
 	serve.Handle("/api/list", listHandler)
 	serve.Handle("/api/info/", findHandler)
 	serve.Handle("/api/upload", addHandler)
+	serve.Handle("/api/delete", deleteHandler)
 	serve.Handle("/plist/", plistHandler)
 
 	// static files

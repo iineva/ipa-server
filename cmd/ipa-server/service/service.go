@@ -141,11 +141,17 @@ func (s *service) Delete(id string) error {
 		return ErrIdNotFound
 	}
 
+	if err := s.saveMetadata(); err != nil {
+		return err
+	}
+
 	if err := s.store.Delete(app.IpaStorageName()); err != nil {
 		return err
 	}
-	if err := s.store.Delete(app.IconStorageName()); err != nil {
-		return err
+	if !app.NoneIcon {
+		if err := s.store.Delete(app.IconStorageName()); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -166,16 +172,23 @@ func (s *service) Add(r io.Reader, size int64) error {
 	// update list
 	s.lock.Lock()
 	s.list = append([]*ipa.AppInfo{app}, s.list...)
+	s.lock.Unlock()
+
+	return s.saveMetadata()
+}
+
+// save metadata
+func (s *service) saveMetadata() error {
+	s.lock.Lock()
 	d, err := json.Marshal(s.list)
 	s.lock.Unlock()
 
-	// save metadata
-	b := bytes.NewBuffer(d)
-	if err := s.store.Save(s.metadataName, b); err != nil {
+	if err != nil {
 		return err
 	}
 
-	return nil
+	b := bytes.NewBuffer(d)
+	return s.store.Save(s.metadataName, b)
 }
 
 func (s *service) tryMigrateOldData() error {
