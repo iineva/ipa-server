@@ -116,6 +116,7 @@ func (d *runAfterReaderClose) Read(p []byte) (int, error) {
 func (q *qiniuStorager) OpenMetadata(name string) (io.ReadCloser, error) {
 
 	// copy to random file name to fix CDN cache
+	// don not use refresh API, because it has rate limit
 	targetName := fmt.Sprintf("temp-%v.json", uuid.NewString())
 	err := q.copy(name, targetName)
 	if err != nil {
@@ -123,7 +124,6 @@ func (q *qiniuStorager) OpenMetadata(name string) (io.ReadCloser, error) {
 	}
 
 	u := storage.MakePublicURL(q.domain.String(), targetName)
-	// + fmt.Sprintf("?v=%v", time.Now().Nanosecond())
 	log.Print(u)
 	resp, err := http.Get(u)
 	if err != nil {
