@@ -59,7 +59,7 @@ func TestIconSize(t *testing.T) {
 		"Payload/UnicornApp.app/AppIcon_TikTok76x76@2x~ipad.png":     152,
 	}
 	for k, v := range data {
-		size, err := IconSize(k)
+		size, err := iconSize(k)
 		if err != nil {
 			t.Fatal(err)
 		}

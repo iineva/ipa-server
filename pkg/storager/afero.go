@@ -2,6 +2,8 @@ package storager
 
 import (
 	"io"
+	"log"
+	"net/url"
 	"path/filepath"
 
 	"github.com/spf13/afero"
@@ -29,7 +31,7 @@ func NewMemStorager() Storager {
 	return NewAferoStorager(afero.NewMemMapFs())
 }
 
-func (f *oferoStorager) Save(reader io.Reader, name string) error {
+func (f *oferoStorager) Save(name string, reader io.Reader) error {
 	dir := filepath.Dir(name)
 	if err := f.fs.MkdirAll(dir, oferoStoragerDirPerm); err != nil {
 		return err
@@ -46,7 +48,12 @@ func (f *oferoStorager) Delete(name string) error {
 	return f.fs.Remove(name)
 }
 
-func (f *oferoStorager) PublicURL(name string) (string, error) {
-	// TODO:
-	return "", nil
+func (f *oferoStorager) PublicURL(publicURL, name string) (string, error) {
+	log.Print(publicURL, " ", name)
+	u, err := url.Parse(publicURL)
+	if err != nil {
+		return "", err
+	}
+	u.Path = filepath.Join(u.Path, name)
+	return u.String(), nil
 }

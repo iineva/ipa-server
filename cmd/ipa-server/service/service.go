@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
+	"path/filepath"
 	"sort"
 	"sync"
 	"time"
@@ -46,18 +48,21 @@ type Service interface {
 	Delete(id string) error
 	Add(r io.Reader, size int64) error
 	MigrateOldData(list []*ipa.AppInfo) error
+	Plist(id, publicURL string) ([]byte, error)
 }
 
 type service struct {
-	list  ipa.AppList
-	lock  sync.RWMutex
-	store storager.Storager
+	list      ipa.AppList
+	lock      sync.RWMutex
+	store     storager.Storager
+	publicURL string
 }
 
-func New(store storager.Storager) Service {
+func New(store storager.Storager, publicURL string) Service {
 	return &service{
-		store: store,
-		list:  ipa.AppList{},
+		store:     store,
+		list:      ipa.AppList{},
+		publicURL: publicURL, // use set public url
 	}
 }
 
@@ -76,7 +81,7 @@ func (s *service) List(publicURL string) ([]*Item, error) {
 		if has {
 			continue
 		}
-		item := itemInfo(row, publicURL)
+		item := s.itemInfo(row, publicURL)
 		item.History = s.history(row, publicURL)
 		list = append(list, item)
 	}
@@ -91,7 +96,7 @@ func (s *service) Find(id string, publicURL string) (*Item, error) {
 		return nil, err
 	}
 
-	item := itemInfo(app, publicURL)
+	item := s.itemInfo(app, publicURL)
 	item.History = s.history(app, publicURL)
 	return item, nil
 }
@@ -108,8 +113,26 @@ func (s *service) History(id string, publicURL string) ([]*Item, error) {
 
 func (s *service) Delete(id string) error {
 	s.lock.Lock()
-	defer s.lock.Unlock()
-	// TODO:
+	var app *ipa.AppInfo
+	for i, a := range s.list {
+		if a.ID == id {
+			app = a
+			s.list = append(s.list[:i], s.list[i+1:]...)
+			break
+		}
+	}
+	s.lock.Unlock()
+
+	if app == nil {
+		return ErrIdNotFound
+	}
+
+	if err := s.store.Delete(app.IpaStorageName()); err != nil {
+		return err
+	}
+	if err := s.store.Delete(app.IconStorageName()); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -137,6 +160,14 @@ func (s *service) MigrateOldData(list []*ipa.AppInfo) error {
 	return nil
 }
 
+func (s *service) Plist(id, publicURL string) ([]byte, error) {
+	app, err := s.Find(id, publicURL)
+	if err != nil {
+		return nil, err
+	}
+	return NewInstallPlist(app)
+}
+
 func (s *service) find(id string) (*ipa.AppInfo, error) {
 	for _, row := range s.list {
 		if row.ID == id {
@@ -146,13 +177,39 @@ func (s *service) find(id string) (*ipa.AppInfo, error) {
 	return nil, ErrIdNotFound
 }
 
-func itemInfo(row *ipa.AppInfo, publicURL string) *Item {
+// get public url
+func (s *service) storagerPublicURL(publicURL, name string) string {
+	if s.publicURL != "" {
+		publicURL = s.publicURL
+	}
+	u, err := s.store.PublicURL(publicURL, name)
+	if err != nil {
+		// TODO: handle err
+		return ""
+	}
+	return u
+}
+
+func (s *service) servicePublicURL(publicURL, name string) string {
+	if s.publicURL != "" {
+		publicURL = s.publicURL
+	}
+	u, err := url.Parse(publicURL)
+	if err != nil {
+		// TODO: handle err
+		return ""
+	}
+	u.Path = filepath.Join(u.Path, name)
+	return u.String()
+}
+
+func (s *service) itemInfo(row *ipa.AppInfo, publicURL string) *Item {
 	return &Item{
 		AppInfo: *row,
-		Ipa:     fmt.Sprintf("%s/%s/%s/ipa.ipa", publicURL, row.Identifier, row.ID),
-		Icon:    fmt.Sprintf("%s/%s", publicURL, iconPath(row)),
-		Plist:   fmt.Sprintf("%s/plist/%v.plist", publicURL, row.ID),
-		WebIcon: fmt.Sprintf("%s/%s", publicURL, iconPath(row)),
+		Ipa:     s.storagerPublicURL(publicURL, row.IpaStorageName()),
+		Icon:    s.storagerPublicURL(publicURL, iconPath(row)),
+		Plist:   s.servicePublicURL(publicURL, fmt.Sprintf("plist/%v.plist", row.ID)),
+		WebIcon: s.storagerPublicURL(publicURL, iconPath(row)),
 		Date:    time.Now(),
 	}
 }
@@ -161,7 +218,7 @@ func (s *service) history(row *ipa.AppInfo, publicURL string) []*Item {
 	list := []*Item{}
 	for _, i := range s.list {
 		if i.Identifier == row.Identifier {
-			item := itemInfo(i, publicURL)
+			item := s.itemInfo(i, publicURL)
 			item.Current = i.ID == row.ID
 			list = append(list, item)
 		}
@@ -169,11 +226,12 @@ func (s *service) history(row *ipa.AppInfo, publicURL string) []*Item {
 	return list
 }
 
-func iconPath(row *ipa.AppInfo) string {
-	if row.NoneIcon {
-		return "img/default.png"
+func iconPath(app *ipa.AppInfo) string {
+	name := app.IconStorageName()
+	if name == "" {
+		name = "img/default.png"
 	}
-	return fmt.Sprintf("%s/%s/icon.png", row.Identifier, row.ID)
+	return name
 }
 
 type ServiceMiddleware func(Service) Service

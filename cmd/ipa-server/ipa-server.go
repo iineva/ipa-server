@@ -42,6 +42,7 @@ func main() {
 
 	debug := flag.Bool("d", false, "enable debug logging")
 	storageDir := flag.String("dir", "upload", "upload data storage dir")
+	publicURL := flag.String("public-url", "", "public url")
 	flag.Usage = usage
 	flag.Parse()
 
@@ -53,27 +54,33 @@ func main() {
 	logger := log.NewLogfmtLogger(os.Stderr)
 	logger = log.With(logger, "ts", log.TimestampFormat(time.Now, "2006-01-02 15:04:05.000"), "caller", log.DefaultCaller)
 
-	srv := service.New(storager.NewOsFileStorager(*storageDir))
+	srv := service.New(storager.NewOsFileStorager(*storageDir), *publicURL)
 	listHandler := httptransport.NewServer(
 		service.LoggingMiddleware(logger, "/api/list", *debug)(service.MakeListEndpoint(srv)),
 		service.DecodeListRequest,
-		service.EncodeResponse,
+		service.EncodeJsonResponse,
 	)
 	findHandler := httptransport.NewServer(
 		service.LoggingMiddleware(logger, "/api/info", *debug)(service.MakeFindEndpoint(srv)),
 		service.DecodeFindRequest,
-		service.EncodeResponse,
+		service.EncodeJsonResponse,
 	)
 	addHandler := httptransport.NewServer(
 		service.LoggingMiddleware(logger, "/api/upload", *debug)(service.MakeAddEndpoint(srv)),
 		service.DecodeAddRequest,
-		service.EncodeResponse,
+		service.EncodeJsonResponse,
+	)
+	plistHandler := httptransport.NewServer(
+		service.LoggingMiddleware(logger, "/plist", *debug)(service.MakePlistEndpoint(srv)),
+		service.DecodePlistRequest,
+		service.EncodePlistResponse,
 	)
 
 	// parser API
 	serve.Handle("/api/list", listHandler)
 	serve.Handle("/api/info/", findHandler)
 	serve.Handle("/api/upload", addHandler)
+	serve.Handle("/plist/", plistHandler)
 
 	// static files
 	uploadFS := afero.NewBasePathFs(afero.NewOsFs(), *storageDir)

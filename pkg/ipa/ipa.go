@@ -13,33 +13,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/iineva/CgbiPngFix/ipaPng"
 	"github.com/lithammer/shortuuid"
-	"github.com/poolqa/CgbiPngFix/ipaPng"
 
 	"github.com/iineva/ipa-server/pkg/common"
 	"github.com/iineva/ipa-server/pkg/plist"
 	"github.com/iineva/ipa-server/pkg/seekbuf"
 	"github.com/iineva/ipa-server/pkg/storager"
 )
-
-type AppInfo struct {
-	ID         string      `json:"id"`
-	Name       string      `json:"name"`
-	Version    string      `json:"version"`
-	Identifier string      `json:"identifier"`
-	Build      string      `json:"build"`
-	Channel    string      `json:"channel"`
-	Date       time.Time   `json:"date"`
-	Size       int64       `json:"size"`
-	NoneIcon   bool        `json:"noneIcon"`
-	original   plist.Plist `json:"-"`
-}
-
-type AppList []*AppInfo
-
-func (a AppList) Len() int           { return len(a) }
-func (a AppList) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a AppList) Less(i, j int) bool { return a[i].Date.After(a[j].Date) }
 
 type IpaReader interface {
 	io.ReaderAt
@@ -113,7 +94,7 @@ func ParseAndStorageIPA(readerAt IpaReader, size int64, store storager.Storager)
 	var iconFile *zip.File
 	var maxSize = -1
 	for _, f := range iconFiles {
-		size, err := IconSize(f.Name)
+		size, err := iconSize(f.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -176,7 +157,7 @@ func ParseAndStorageIPA(readerAt IpaReader, size int64, store storager.Storager)
 
 			// save icon file
 			buf.Seek(0, 0)
-			if err := store.Save(pngInput, filepath.Join(app.Identifier, app.ID, "icon.png")); err != nil {
+			if err := store.Save(app.IconStorageName(), pngInput); err != nil {
 				return nil, err
 			}
 		}
@@ -184,14 +165,14 @@ func ParseAndStorageIPA(readerAt IpaReader, size int64, store storager.Storager)
 
 	// save ipa file
 	readerAt.Seek(0, 0)
-	if err := store.Save(readerAt, filepath.Join(app.Identifier, app.ID, "ipa.ipa")); err != nil {
+	if err := store.Save(app.IpaStorageName(), readerAt); err != nil {
 		return nil, err
 	}
 
 	return app, nil
 }
 
-func IconSize(fileName string) (s int, err error) {
+func iconSize(fileName string) (s int, err error) {
 	size := float64(0)
 	match, _ := regexp.MatchString(oldIconRegular, fileName)
 	name := strings.TrimSuffix(filepath.Base(fileName), ".png")

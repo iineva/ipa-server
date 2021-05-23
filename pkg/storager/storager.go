@@ -1,9 +1,11 @@
 package storager
 
-import "io"
+import (
+	"io"
+)
 
 type Storager interface {
-	Save(reader io.Reader, name string) error
+	Save(name string, reader io.Reader) error
 	Delete(name string) error
-	PublicURL(name string) (string, error)
+	PublicURL(publicURL, name string) (string, error)
 }
