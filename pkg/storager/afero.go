@@ -43,6 +43,10 @@ func (f *oferoStorager) Save(name string, reader io.Reader) error {
 	return err
 }
 
+func (f *oferoStorager) OpenMetadata(name string) (io.ReadCloser, error) {
+	return f.fs.Open(name)
+}
+
 func (f *oferoStorager) Delete(name string) error {
 	return f.fs.Remove(name)
 }

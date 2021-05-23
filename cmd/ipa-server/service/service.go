@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/url"
 	"path/filepath"
 	"sort"
@@ -45,8 +46,6 @@ func (i *Item) String() string {
 	return fmt.Sprintf("%+v", *i)
 }
 
-const metadataName = "appList.json"
-
 var (
 	ErrIdNotFound = errors.New("id not found")
 )
@@ -57,23 +56,28 @@ type Service interface {
 	History(id string, publicURL string) ([]*Item, error)
 	Delete(id string) error
 	Add(r io.Reader, size int64) error
-	MigrateOldData(list []*ipa.AppInfo) error
 	Plist(id, publicURL string) ([]byte, error)
 }
 
 type service struct {
-	list      ipa.AppList
-	lock      sync.RWMutex
-	store     storager.Storager
-	publicURL string
+	list         ipa.AppList
+	lock         sync.RWMutex
+	store        storager.Storager
+	publicURL    string
+	metadataName string
 }
 
-func New(store storager.Storager, publicURL string) Service {
-	return &service{
-		store:     store,
-		list:      ipa.AppList{},
-		publicURL: publicURL, // use set public url
+func New(store storager.Storager, publicURL, metadataName string) Service {
+	s := &service{
+		store:        store,
+		list:         ipa.AppList{},
+		publicURL:    publicURL, // use set public url
+		metadataName: metadataName,
 	}
+	if err := s.tryMigrateOldData(); err != nil {
+		// NOTE: ignore error
+	}
+	return s
 }
 
 func (s *service) List(publicURL string) ([]*Item, error) {
@@ -167,16 +171,34 @@ func (s *service) Add(r io.Reader, size int64) error {
 
 	// save metadata
 	b := bytes.NewBuffer(d)
-	s.store.Save(metadataName, b)
+	if err := s.store.Save(s.metadataName, b); err != nil {
+		return err
+	}
 
 	return nil
 }
 
-func (s *service) MigrateOldData(list []*ipa.AppInfo) error {
+func (s *service) tryMigrateOldData() error {
+	f, err := s.store.OpenMetadata(s.metadataName)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		return err
+	}
+
+	list := ipa.AppList{}
+	if err := json.Unmarshal(b, &list); err != nil {
+		return err
+	}
+
 	s.lock.Lock()
-	defer s.lock.Unlock()
 	s.list = append(list, s.list...)
 	sort.Sort(s.list)
+	s.lock.Unlock()
+
 	return nil
 }
 
@@ -236,9 +258,9 @@ func (s *service) itemInfo(row *ipa.AppInfo, publicURL string) *Item {
 		Channel:    row.Channel,
 
 		Ipa:     s.storagerPublicURL(publicURL, row.IpaStorageName()),
-		Icon:    s.storagerPublicURL(publicURL, iconPath(row)),
+		Icon:    s.iconPublicURL(publicURL, row),
 		Plist:   s.servicePublicURL(publicURL, fmt.Sprintf("plist/%v.plist", row.ID)),
-		WebIcon: s.storagerPublicURL(publicURL, iconPath(row)),
+		WebIcon: s.iconPublicURL(publicURL, row),
 	}
 }
 
@@ -254,12 +276,13 @@ func (s *service) history(row *ipa.AppInfo, publicURL string) []*Item {
 	return list
 }
 
-func iconPath(app *ipa.AppInfo) string {
+func (s *service) iconPublicURL(publicURL string, app *ipa.AppInfo) string {
 	name := app.IconStorageName()
 	if name == "" {
 		name = "img/default.png"
+		return s.servicePublicURL(publicURL, name)
 	}
-	return name
+	return s.storagerPublicURL(publicURL, name)
 }
 
 type ServiceMiddleware func(Service) Service

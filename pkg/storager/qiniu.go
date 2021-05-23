@@ -3,10 +3,14 @@ package storager
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
+	"log"
+	"net/http"
 	"net/url"
 	"path/filepath"
 
+	"github.com/google/uuid"
 	"github.com/qiniu/go-sdk/v7/auth"
 	"github.com/qiniu/go-sdk/v7/auth/qbox"
 	"github.com/qiniu/go-sdk/v7/storage"
@@ -27,7 +31,7 @@ var (
 )
 
 // zone option: huadong:z0 huabei:z1 huanan:z2 northAmerica:na0 singapore:as0 fogCnEast1:fog-cn-east-1
-// domain required: https://file.example.com/path/to/dir
+// domain required: https://file.example.com
 func NewQiniuStorager(accessKey, secretKey, zone, bucket, domain string) (Storager, error) {
 	config := &storage.Config{
 		UseHTTPS:      true,
@@ -60,9 +64,9 @@ func (q *qiniuStorager) newMac() *auth.Credentials {
 	return qbox.NewMac(q.accessKey, q.secretKey)
 }
 
-func (q *qiniuStorager) newUploadToken() string {
+func (q *qiniuStorager) newUploadToken(keyToOverwrite string) string {
 	putPolicy := storage.PutPolicy{
-		Scope: q.bucket,
+		Scope: fmt.Sprintf("%s:%s", q.bucket, keyToOverwrite),
 	}
 	return putPolicy.UploadToken(q.newMac())
 }
@@ -71,7 +75,7 @@ func (q *qiniuStorager) upload(name string, reader io.Reader) (*storage.PutRet, 
 	resumeUploader := storage.NewResumeUploaderV2(q.config)
 	ret := &storage.PutRet{}
 	putExtra := storage.RputV2Extra{}
-	err := resumeUploader.PutWithoutSize(context.Background(), ret, q.newUploadToken(), name, reader, &putExtra)
+	err := resumeUploader.PutWithoutSize(context.Background(), ret, q.newUploadToken(name), name, reader, &putExtra)
 	if err != nil {
 		return nil, err
 	}
@@ -83,9 +87,51 @@ func (q *qiniuStorager) delete(name string) error {
 	return bucketManager.Delete(q.bucket, name)
 }
 
+func (q *qiniuStorager) copy(src string, dest string) error {
+	bucketManager := storage.NewBucketManager(q.newMac(), q.config)
+	return bucketManager.Copy(q.bucket, src, q.bucket, dest, true)
+}
+
 func (q *qiniuStorager) Save(name string, reader io.Reader) error {
 	_, err := q.upload(name, reader)
 	return err
+}
+
+type runAfterReaderClose struct {
+	cb     func() error
+	reader io.ReadCloser
+}
+
+func (d *runAfterReaderClose) Close() error {
+	if err := d.reader.Close(); err != nil {
+		return err
+	}
+	return d.cb()
+}
+
+func (d *runAfterReaderClose) Read(p []byte) (int, error) {
+	return d.reader.Read(p)
+}
+
+func (q *qiniuStorager) OpenMetadata(name string) (io.ReadCloser, error) {
+
+	// copy to random file name to fix CDN cache
+	targetName := fmt.Sprintf("temp-%v.json", uuid.NewString())
+	err := q.copy(name, targetName)
+	if err != nil {
+		return nil, err
+	}
+
+	u := storage.MakePublicURL(q.domain.String(), targetName)
+	// + fmt.Sprintf("?v=%v", time.Now().Nanosecond())
+	log.Print(u)
+	resp, err := http.Get(u)
+	if err != nil {
+		return nil, err
+	}
+	return &runAfterReaderClose{reader: resp.Body, cb: func() error {
+		return q.delete(targetName)
+	}}, err
 }
 
 func (q *qiniuStorager) Delete(name string) error {

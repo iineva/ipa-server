@@ -1,12 +1,11 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/go-kit/kit/log"
@@ -15,7 +14,6 @@ import (
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/iineva/ipa-server/cmd/ipa-server/service"
 	"github.com/iineva/ipa-server/pkg/httpfs"
-	"github.com/iineva/ipa-server/pkg/ipa"
 	"github.com/iineva/ipa-server/pkg/storager"
 	"github.com/iineva/ipa-server/public"
 )
@@ -42,19 +40,33 @@ func main() {
 
 	debug := flag.Bool("d", false, "enable debug logging")
 	storageDir := flag.String("dir", "upload", "upload data storage dir")
-	publicURL := flag.String("public-url", "", "public url")
+	publicURL := flag.String("public-url", "", "server public url")
+	metadataPath := flag.String("mata-path", "appList.json", "metadata storage path, use random file name to keep your metadata save")
+	qiniuConfig := flag.String("qiniu", "", "qiniu config AK:SK:[ZONE]:BUCKET:")
+	ossURL := flag.String("oss-url", "", "OSS access public url")
 	flag.Usage = usage
 	flag.Parse()
 
 	host := fmt.Sprintf("%s:%s", getEnv("ADDRESS", "0.0.0.0"), getEnv("PORT", "8080"))
 
 	serve := http.NewServeMux()
-	// r := route.New()
 
 	logger := log.NewLogfmtLogger(os.Stderr)
 	logger = log.With(logger, "ts", log.TimestampFormat(time.Now, "2006-01-02 15:04:05.000"), "caller", log.DefaultCaller)
 
-	srv := service.New(storager.NewOsFileStorager(*storageDir), *publicURL)
+	var store storager.Storager
+	if *ossURL != "" {
+		args := strings.Split(*qiniuConfig, ":")
+		s, err := storager.NewQiniuStorager(args[0], args[1], args[2], args[3], *ossURL)
+		if err != nil {
+			panic(err)
+		}
+		store = s
+	} else {
+		store = storager.NewOsFileStorager(*storageDir)
+	}
+
+	srv := service.New(store, *publicURL, *metadataPath)
 	listHandler := httptransport.NewServer(
 		service.LoggingMiddleware(logger, "/api/list", *debug)(service.MakeListEndpoint(srv)),
 		service.DecodeListRequest,
@@ -92,15 +104,6 @@ func main() {
 		"/key": "/key.html",
 	}, http.FileServer(staticFS)))
 
-	// try migrate old version data
-	err := tryMigrateOldData(uploadFS, srv)
-	if err != nil {
-		logger.Log(
-			"msg", "migrate old version data err",
-			"err", err.Error(),
-		)
-	}
-
 	logger.Log("msg", fmt.Sprintf("SERVER LISTEN ON: http://%v", host))
 	logger.Log("msg", http.ListenAndServe(host, serve))
 }
@@ -110,27 +113,4 @@ func usage() {
 Options:
 `)
 	flag.PrintDefaults()
-}
-
-func tryMigrateOldData(uploadFS afero.Fs, srv service.Service) error {
-	f, err := uploadFS.Open("appList.json")
-	if err != nil {
-		return err
-	}
-	b, err := ioutil.ReadAll(f)
-	if err != nil {
-		return err
-	}
-
-	list := ipa.AppList{}
-	if err := json.Unmarshal(b, &list); err != nil {
-		return err
-	}
-	if err := srv.MigrateOldData(list); err != nil {
-		return err
-	}
-
-	// TODO: delete old file
-
-	return nil
 }
