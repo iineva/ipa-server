@@ -11,4 +11,6 @@ FROM ineva/alpine:3.10.3
 LABEL maintainer="Steven <s@ineva.cn>"
 WORKDIR /app
 COPY --from=builder /src/ipasd /app
-ENTRYPOINT /app/ipasd
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+ENTRYPOINT /docker-entrypoint.sh
