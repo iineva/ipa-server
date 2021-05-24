@@ -14,12 +14,12 @@ import (
 	"time"
 
 	"github.com/iineva/CgbiPngFix/ipaPng"
-	"github.com/lithammer/shortuuid"
 
 	"github.com/iineva/ipa-server/pkg/common"
 	"github.com/iineva/ipa-server/pkg/plist"
 	"github.com/iineva/ipa-server/pkg/seekbuf"
 	"github.com/iineva/ipa-server/pkg/storager"
+	"github.com/iineva/ipa-server/pkg/uuid"
 )
 
 type IpaReader interface {
@@ -122,7 +122,7 @@ func ParseAndStorageIPA(readerAt IpaReader, size int64, store storager.Storager)
 			return nil, err
 		}
 		app = &AppInfo{
-			ID:         NewAppID(),
+			ID:         uuid.NewString(),
 			Name:       common.Def(info.GetString("CFBundleDisplayName"), info.GetString("CFBundleName"), info.GetString("CFBundleExecutable")),
 			Version:    info.GetString("CFBundleShortVersionString"),
 			Identifier: info.GetString("CFBundleIdentifier"),
@@ -197,8 +197,4 @@ func iconSize(fileName string) (s int, err error) {
 		}
 	}
 	return int(size), err
-}
-
-func NewAppID() string {
-	return shortuuid.New()
 }

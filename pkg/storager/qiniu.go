@@ -9,10 +9,11 @@ import (
 	"net/url"
 	"path/filepath"
 
-	"github.com/google/uuid"
 	"github.com/qiniu/go-sdk/v7/auth"
 	"github.com/qiniu/go-sdk/v7/auth/qbox"
 	"github.com/qiniu/go-sdk/v7/storage"
+
+	"github.com/iineva/ipa-server/pkg/uuid"
 )
 
 type qiniuStorager struct {
@@ -70,6 +71,10 @@ func (q *qiniuStorager) newUploadToken(keyToOverwrite string) string {
 	return putPolicy.UploadToken(q.newMac())
 }
 
+func (q *qiniuStorager) newBucketManager() *storage.BucketManager {
+	return storage.NewBucketManager(q.newMac(), q.config)
+}
+
 func (q *qiniuStorager) upload(name string, reader io.Reader) (*storage.PutRet, error) {
 	resumeUploader := storage.NewResumeUploaderV2(q.config)
 	ret := &storage.PutRet{}
@@ -82,13 +87,11 @@ func (q *qiniuStorager) upload(name string, reader io.Reader) (*storage.PutRet, 
 }
 
 func (q *qiniuStorager) delete(name string) error {
-	bucketManager := storage.NewBucketManager(q.newMac(), q.config)
-	return bucketManager.Delete(q.bucket, name)
+	return q.newBucketManager().Delete(q.bucket, name)
 }
 
 func (q *qiniuStorager) copy(src string, dest string) error {
-	bucketManager := storage.NewBucketManager(q.newMac(), q.config)
-	return bucketManager.Copy(q.bucket, src, q.bucket, dest, true)
+	return q.newBucketManager().Copy(q.bucket, src, q.bucket, dest, true)
 }
 
 func (q *qiniuStorager) Save(name string, reader io.Reader) error {

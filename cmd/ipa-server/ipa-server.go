@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/go-kit/kit/log"
-	"github.com/google/uuid"
 	"github.com/spf13/afero"
 
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/iineva/ipa-server/cmd/ipa-server/service"
 	"github.com/iineva/ipa-server/pkg/httpfs"
 	"github.com/iineva/ipa-server/pkg/storager"
+	"github.com/iineva/ipa-server/pkg/uuid"
 	"github.com/iineva/ipa-server/public"
 )
 
