@@ -2,13 +2,13 @@
 all:: web
 
 web::
-	go run cmd/ipa-server/ipa-server.go
+	go run cmd/ipasd/ipasd.go
 
 debug::
-	go run cmd/ipa-server/ipa-server.go -d
+	go run cmd/ipasd/ipasd.go -d
 
 build::
-	go build cmd/ipa-server/ipa-server.go
+	go build cmd/ipasd/ipasd.go
 
 test::
 	go test ./...
