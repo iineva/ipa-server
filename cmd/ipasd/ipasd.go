@@ -56,7 +56,8 @@ func main() {
 	logger = log.With(logger, "ts", log.TimestampFormat(time.Now, "2006-01-02 15:04:05.000"), "caller", log.DefaultCaller)
 
 	var store storager.Storager
-	if *qiniuConfig != "" {
+	if *qiniuConfig != "" && *qiniuURL != "" {
+		logger.Log("msg", "use qiniu storager")
 		args := strings.Split(*qiniuConfig, ":")
 		s, err := storager.NewQiniuStorager(args[0], args[1], args[2], args[3], *qiniuURL)
 		if err != nil {
@@ -64,6 +65,7 @@ func main() {
 		}
 		store = s
 	} else {
+		logger.Log("msg", "use os file storager")
 		store = storager.NewOsFileStorager(*storageDir)
 	}
 
