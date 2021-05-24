@@ -4,10 +4,23 @@ services:
   web:
     build: .
     container_name: ipa-server
-    restart: always
+    restart: unless-stopped
     environment:
-      - NODE_ENV=production
+      # server public url
+      - PUBLIC_URL=
+      # option, qiniu config AK:SK:[ZONE]:BUCKET
+      - QINIU=
+      # option, qiniu public url
+      - QINIU_URL=
+      # option, metadata storage path, use random secret path to keep your metadata safer in case of remote storage
+      - MATA_PATH=appList.json
     ports:
       - "9008:8080"
     volumes:
       - "/docker/data/ipa-server:/app/upload"
+    command:
+    - -public-url "$PUBLIC_URL"
+    - -qiniu "$QINIU"
+    - -qiniu-url "$QINIU_URL"
+    - -mata-path "$MATA_PATH"
+

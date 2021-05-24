@@ -1,33 +1,34 @@
 # ipa-server
 
+ipa-server is updated to v2, to [older version v1](https://github.com/iineva/ipa-server/tree/v1)
+
 Upload and install IPA in web.
 
 * [中文文档](README_zh.md)
 
-# Online Demo
+Home | Detail |
+ --- | ---
+![](snapshot/en/1.jpeg) | ![](snapshot/en/2.jpeg)
 
-<https://ipa.ineva.cn>
 
-⚠️ Note About This Demo:
+# Install for local trial
 
-* For test only
-* Server is deploy in China
-* Bandwidth only 1Mb/s
-* DO NOT USE THIS ON PRODUCTION
-
-# Install
-
+```shell
+# clone
+git clone https://github.com/iineva/ipa-server
+# build and start
+cd ipa-server
+docker-compose up -d
+# than open http://localhost:9008 in your browser.
 ```
-$ git clone https://github.com/iineva/ipa-server
-$ cd ipa-server
-$ docker-compose up -d
-```
-
-# Test
-
-Open <http://<HOST_NAME>:9008> in your browser.
 
 # Heroku Deploy
+
+### config
+
+* PUBLIC_URL: public URL for this server, empty to use `$DOMAIN`
+* QINIU: qiniu config `AK:SK:[ZONE]:BUCKET`
+* QINIU_URL: qiniu public url, https://cdn.example.com
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
@@ -35,6 +36,8 @@ Open <http://<HOST_NAME>:9008> in your browser.
 # Docker Deploy
 
 * This server is not included SSL certificate. It must run behide the reverse proxy with HTTPS.
+
+* After deployed, you can access *https://\<YOUR_DOMAIN\>* in your browser.
 
 * There is a simple way to setup a HTTPS with replace `docker-compose.yml` file:
 
@@ -46,14 +49,25 @@ version: "2"
 
 services:
   web:
-    image: ineva/ipa-server:latest
+    image: ineva/ipa-server:v2.0
     container_name: ipa-server
-    restart: always
+    restart: unless-stopped
     environment:
-      - NODE_ENV=production
+      # server public url
       - PUBLIC_URL=https://<YOUR_DOMAIN>
+      # option, qiniu config AK:SK:[ZONE]:BUCKET
+      - QINIU=
+      # option, qiniu public url
+      - QINIU_URL=
+      # option, metadata storage path, use random secret path to keep your metadata safer in case of remote storage
+      - MATA_PATH=appList.json
     volumes:
       - "/docker/data/ipa-server:/app/upload"
+    command:
+      - -public-url "$PUBLIC_URL"
+      - -qiniu "$QINIU"
+      - -qiniu-url "$QINIU_URL"
+      - -mata-path "$MATA_PATH"
   caddy:
     image: abiosoft/caddy:0.11.5
     restart: always
@@ -70,28 +84,15 @@ services:
         }
 ```
 
-# Deploy Without Docker
+# Build or run from source code
 
 ```shell
-# install node.js first
-npm install
-npm start
+# install golang v1.16 first
+git clone https://github.com/iineva/ipa-server
+# build and start
+cd ipa-server
+# build binary
+make build
+# run local server
+make
 ```
-
-
-* now you can access *https://\<YOUR_DOMAIN\>* in your browser.
-
-# Upload Access Control
-
-Server side:
-
-Add `ACCESS_KEY` to system environment as password.
-
-Client side:
-
-Browser open: https://\<YOUR_DOMAIN\>/key.html?key=\<ACCESS_KEY\>
-
-
-Home | Detail |
- --- | ---
-![](snapshot/en/1.jpeg) | ![](snapshot/en/2.jpeg)

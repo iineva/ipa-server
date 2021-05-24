@@ -1,19 +1,29 @@
 {
     "name": "ipa-server",
-    "description": "Deploy templates on Heroku.",
+    "description": "Deploy ipa-server on Heroku.",
     "keywords": [
         "ipa-server"
     ],
     "env": {
         "PUBLIC_URL": {
-            "description": "Public URL, default to use $DOMAIN",
+            "description": "public URL for this server, empty to use $DOMAIN",
             "required": false,
             "value": ""
         },
-        "ACCESS_KEY": {
-            "description": "Detail: https://github.com/iineva/ipa-server#upload-access-control",
+        "QINIU": {
+            "description": "qiniu config AK:SK:[ZONE]:BUCKET",
             "required": false,
             "value": ""
+        },
+        "QINIU_URL": {
+            "description": "qiniu public url, https://cdn.example.com",
+            "required": false,
+            "value": ""
+        },
+        "MATA_PATH": {
+            "description": "option, metadata storage path, use random secret path to keep your metadata safer in case of remote storage",
+            "required": false,
+            "value": "appList.json"
         }
     },
     "website": "https://github.com/iineva/ipa-server",
