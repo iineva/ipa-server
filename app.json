@@ -20,7 +20,7 @@
             "required": false,
             "value": ""
         },
-        "MATA_PATH": {
+        "META_PATH": {
             "description": "option, metadata storage path, use random secret path to keep your metadata safer in case of remote storage",
             "required": false,
             "value": "appList.json"

@@ -65,14 +65,9 @@ services:
       # option, 七牛DNS域名，注意要加 https://
       - QINIU_URL=
       # option, 元数据存储路径, 使用一个随机路径来保护元数据，因为在使用远程存储的时候，没有更好的方法防止外部直接访问元数据文件
-      - MATA_PATH=appList.json
+      - META_PATH=appList.json
     volumes:
       - "/docker/data/ipa-server:/app/upload"
-    command:
-      - -public-url "$PUBLIC_URL"
-      - -qiniu "$QINIU"
-      - -qiniu-url "$QINIU_URL"
-      - -mata-path "$MATA_PATH"
   caddy:
     image: abiosoft/caddy:0.11.5
     restart: always
@@ -107,3 +102,4 @@ make
 - [ ] 设计全新的鉴权方式，初步考虑试用GitHub登录鉴权
 - [x] 支持七牛存储
 - [x] 兼容v1产生数据，无缝升级
+- [ ] 支持命令行生成静态文件部署
