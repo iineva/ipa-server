@@ -36,7 +36,7 @@ func main() {
 	debug := flag.Bool("d", false, "enable debug logging")
 	storageDir := flag.String("dir", "upload", "upload data storage dir")
 	publicURL := flag.String("public-url", "", "server public url")
-	metadataPath := flag.String("mata-path", "appList.json", "metadata storage path, use random secret path to keep your metadata safer")
+	metadataPath := flag.String("meta-path", "appList.json", "metadata storage path, use random secret path to keep your metadata safer")
 	qiniuConfig := flag.String("qiniu", "", "qiniu config AK:SK:[ZONE]:BUCKET")
 	qiniuURL := flag.String("qiniu-url", "", "qiniu public url, https://cdn.example.com")
 	flag.Usage = usage
