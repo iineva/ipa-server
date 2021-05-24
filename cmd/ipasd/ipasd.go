@@ -19,14 +19,6 @@ import (
 	"github.com/iineva/ipa-server/public"
 )
 
-func getEnv(key string, def ...string) string {
-	v := os.Getenv(key)
-	if v == "" && len(def) != 0 {
-		v = def[0]
-	}
-	return v
-}
-
 func redirect(m map[string]string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		p, ok := m[r.URL.Path]
@@ -39,6 +31,8 @@ func redirect(m map[string]string, next http.Handler) http.Handler {
 
 func main() {
 
+	addr := flag.String("addr", "0.0.0.0", "bind addr")
+	port := flag.String("port", "8080", "bind port")
 	debug := flag.Bool("d", false, "enable debug logging")
 	storageDir := flag.String("dir", "upload", "upload data storage dir")
 	publicURL := flag.String("public-url", "", "server public url")
@@ -48,7 +42,7 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
-	host := fmt.Sprintf("%s:%s", getEnv("ADDRESS", "0.0.0.0"), getEnv("PORT", "8080"))
+	host := fmt.Sprintf("%s:%s", *addr, *port)
 
 	serve := http.NewServeMux()
 

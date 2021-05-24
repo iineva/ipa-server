@@ -5,3 +5,4 @@ node_modules/
 upload/
 !upload/.gitkeep
 .idea/
+ipasd
