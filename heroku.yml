@@ -2,4 +2,4 @@ build:
   docker:
     web: Dockerfile
 run:
-  web: /app/ipasd -public-url "$${PUBLIC_URL:-$$DOMAIN}" -qiniu "$$QINIU" -qiniu-url "$$QINIU_URL"
+  web: /app/ipasd -public-url "${PUBLIC_URL:-$DOMAIN}" -qiniu "$QINIU" -qiniu-url "$QINIU_URL"
