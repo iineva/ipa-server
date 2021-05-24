@@ -42,8 +42,6 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
-	host := fmt.Sprintf("%s:%s", *addr, *port)
-
 	serve := http.NewServeMux()
 
 	logger := log.NewLogfmtLogger(os.Stderr)
@@ -109,6 +107,7 @@ func main() {
 		fmt.Sprintf("/%s", *metadataPath): fmt.Sprintf("/%s", uuid.NewString()),
 	}, http.FileServer(staticFS)))
 
+	host := fmt.Sprintf("%s:%s", *addr, *port)
 	logger.Log("msg", fmt.Sprintf("SERVER LISTEN ON: http://%v", host))
 	logger.Log("msg", http.ListenAndServe(host, serve))
 }

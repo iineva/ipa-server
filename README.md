@@ -60,14 +60,9 @@ services:
       # option, qiniu public url
       - QINIU_URL=
       # option, metadata storage path, use random secret path to keep your metadata safer in case of remote storage
-      - MATA_PATH=appList.json
+      - META_PATH=appList.json
     volumes:
       - "/docker/data/ipa-server:/app/upload"
-    command:
-      - -public-url "$PUBLIC_URL"
-      - -qiniu "$QINIU"
-      - -qiniu-url "$QINIU_URL"
-      - -mata-path "$MATA_PATH"
   caddy:
     image: abiosoft/caddy:0.11.5
     restart: always
