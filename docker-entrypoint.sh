@@ -19,6 +19,14 @@ if [ -n "$QINIU_URL" ];then
     ipasd_args=$ipasd_args"-qiniu-url $QINIU_URL"
 fi
 
+if [ -n "$ALIOSS" ];then
+    ipasd_args=$ipasd_args"-alioss $ALIOSS"
+fi
+
+if [ -n "$ALIOSS_URL" ];then
+    ipasd_args=$ipasd_args"-alioss-url $ALIOSS_URL"
+fi
+
 if [ -n "$META_PATH" ];then
     ipasd_args=$ipasd_args"-meta-path $META_PATH"
 fi

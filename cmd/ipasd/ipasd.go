@@ -40,7 +40,7 @@ func main() {
 	qiniuConfig := flag.String("qiniu", "", "qiniu config AK:SK:[ZONE]:BUCKET")
 	qiniuURL := flag.String("qiniu-url", "", "qiniu bucket public url, https://cdn.example.com")
 	aliossConfig := flag.String("alioss", "", "alicloud OSS config ENDPOINT:ID:SECRET:BUCKET")
-	aliossURL := flag.String("alioss-url", "", "alicloud OSS bucket public url")
+	aliossURL := flag.String("alioss-url", "", "alicloud OSS bucket public url, https://cdn.example.com")
 
 	flag.Usage = usage
 	flag.Parse()
