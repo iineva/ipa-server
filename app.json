@@ -33,12 +33,12 @@
         "DELETE_ENABLED": {
             "description": "delete app enabled, true/false",
             "required": false,
-            "value": "true"
+            "value": "false"
         },
         "META_PATH": {
             "description": "option, metadata storage path, use random secret path to keep your metadata safer in case of remote storage",
             "required": false,
-            "value": "appList.json"
+            "value": ""
         }
     },
     "website": "https://github.com/iineva/ipa-server",
