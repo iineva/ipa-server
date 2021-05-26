@@ -20,7 +20,7 @@ type qiniuStorager struct {
 	bucket    string
 	accessKey string
 	secretKey string
-	domain    url.URL
+	domain    string
 	config    *storage.Config
 }
 
@@ -46,17 +46,12 @@ func NewQiniuStorager(accessKey, secretKey, zone, bucket, domain string) (Storag
 		config.Zone = &z
 	}
 
-	d, err := url.Parse(domain)
-	if err != nil {
-		return nil, err
-	}
-
 	return &qiniuStorager{
 		bucket:    bucket,
 		accessKey: accessKey,
 		secretKey: secretKey,
 		config:    config,
-		domain:    *d,
+		domain:    domain,
 	}, nil
 }
 
@@ -125,7 +120,7 @@ func (q *qiniuStorager) OpenMetadata(name string) (io.ReadCloser, error) {
 		return nil, err
 	}
 
-	u := storage.MakePublicURL(q.domain.String(), targetName)
+	u := storage.MakePublicURL(q.domain, targetName)
 	resp, err := http.Get(u)
 	if err != nil {
 		return nil, err
@@ -140,7 +135,10 @@ func (q *qiniuStorager) Delete(name string) error {
 }
 
 func (q *qiniuStorager) PublicURL(_, name string) (string, error) {
-	d := q.domain
+	d, err := url.Parse(q.domain)
+	if err != nil {
+		return "", err
+	}
 	d.Path = filepath.Join(d.Path, name)
 	return d.String(), nil
 }

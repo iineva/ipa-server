@@ -22,7 +22,7 @@ import (
 	"github.com/iineva/ipa-server/pkg/uuid"
 )
 
-type IpaReader interface {
+type Reader interface {
 	io.ReaderAt
 	io.Reader
 	io.Seeker
@@ -40,7 +40,7 @@ const (
 	infoPlistRegular = `^Payload\/.*\.app/Info.plist$`
 )
 
-func ParseAndStorageIPA(readerAt IpaReader, size int64, store storager.Storager) (*AppInfo, error) {
+func ParseAndStorageIPA(readerAt Reader, size int64, store storager.Storager) (*AppInfo, error) {
 
 	r, err := zip.NewReader(readerAt, size)
 	if err != nil {

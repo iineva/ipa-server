@@ -15,8 +15,8 @@ func TestReadPlistInfo(t *testing.T) {
 
 	printMemUsage()
 
-	// fileName := "test_data/ipa.ipa"
-	fileName := "/Users/steven/Downloads/TikTok (18.5.0) Unicorn v4.9.ipa"
+	fileName := "test_data/ipa.ipa"
+	// fileName := "/Users/steven/Downloads/TikTok (18.5.0) Unicorn v4.9.ipa"
 	f, err := os.Open(fileName)
 	if err != nil {
 		t.Fatal(err)
