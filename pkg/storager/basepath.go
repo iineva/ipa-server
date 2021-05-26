@@ -28,6 +28,10 @@ func (b *basepathStorager) Delete(name string) error {
 	return b.s.Delete(filepath.Join(b.base, name))
 }
 
+func (b *basepathStorager) Move(src, dest string) error {
+	return b.s.Move(filepath.Join(b.base, src), filepath.Join(b.base, dest))
+}
+
 func (b *basepathStorager) PublicURL(publicURL, name string) (string, error) {
 	return b.s.PublicURL(publicURL, filepath.Join(b.base, name))
 }

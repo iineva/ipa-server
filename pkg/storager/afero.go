@@ -51,6 +51,14 @@ func (f *oferoStorager) Delete(name string) error {
 	return f.fs.Remove(name)
 }
 
+func (f *oferoStorager) Move(src, dest string) error {
+	err := f.fs.MkdirAll(filepath.Dir(dest), oferoStoragerDirPerm)
+	if err != nil {
+		return err
+	}
+	return f.fs.Rename(src, dest)
+}
+
 func (f *oferoStorager) PublicURL(publicURL, name string) (string, error) {
 	return helper.UrlJoin(publicURL, name)
 }

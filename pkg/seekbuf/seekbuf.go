@@ -63,6 +63,7 @@ func (b *Buffer) Close() error {
 	if b.mode == FileMode {
 		name := b.f.Name()
 		b.f.Close()
+		b.f = nil
 		os.Remove(name)
 	}
 	return nil
@@ -85,6 +86,7 @@ func (s *Buffer) ReadAt(p []byte, off int64) (n int, err error) {
 			rn, e := io.CopyN(s.f, s.reader, total-s.len)
 			n = int(rn)
 			err = e
+			s.len += int64(n)
 		}
 	}
 
@@ -136,4 +138,11 @@ func (b *Buffer) Seek(offset int64, whence int) (int64, error) {
 	}
 
 	return int64(b.pos), nil
+}
+
+// return current buffer len
+func (b *Buffer) Size() int64 {
+	b.lock.Lock()
+	defer b.lock.Unlock()
+	return b.len
 }

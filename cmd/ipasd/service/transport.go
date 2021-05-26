@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"mime/multipart"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -16,6 +15,8 @@ import (
 
 	"github.com/go-kit/kit/endpoint"
 	"github.com/iineva/ipa-server/pkg/common"
+	pkgMultipart "github.com/iineva/ipa-server/pkg/multipart"
+	"github.com/iineva/ipa-server/pkg/seekbuf"
 )
 
 type param struct {
@@ -24,8 +25,7 @@ type param struct {
 }
 
 type addParam struct {
-	file multipart.File
-	size int64
+	file *pkgMultipart.FormFile
 }
 
 type data interface{}
@@ -55,9 +55,13 @@ func MakeFindEndpoint(srv Service) endpoint.Endpoint {
 func MakeAddEndpoint(srv Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		p := request.(addParam)
-		defer p.file.Close()
-		err := srv.Add(p.file, p.size)
+		buf, err := seekbuf.Open(p.file, seekbuf.FileMode)
 		if err != nil {
+			return nil, err
+		}
+		defer buf.Close()
+
+		if err := srv.Add(buf); err != nil {
 			return nil, err
 		}
 		return map[string]string{"msg": "ok"}, nil
@@ -111,12 +115,20 @@ func DecodeAddRequest(_ context.Context, r *http.Request) (interface{}, error) {
 		return nil, errors.New("404")
 	}
 
-	err := r.ParseMultipartForm(0)
+	m := pkgMultipart.New(r)
+	f, err := m.GetFormFile("file")
 	if err != nil {
 		return nil, err
 	}
-	file, handler, err := r.FormFile("file")
-	return addParam{file: file, size: handler.Size}, nil
+
+	return addParam{file: f}, nil
+
+	// err := r.ParseMultipartForm(0)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// file, handler, err := r.FormFile("file")
+	// return addParam{file: file, size: handler.Size}, nil
 }
 
 func DecodeDeleteRequest(_ context.Context, r *http.Request) (interface{}, error) {

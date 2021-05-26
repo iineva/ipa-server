@@ -70,10 +70,12 @@ func (q *qiniuStorager) newBucketManager() *storage.BucketManager {
 }
 
 func (q *qiniuStorager) upload(name string, reader io.Reader) (*storage.PutRet, error) {
-	resumeUploader := storage.NewResumeUploaderV2(q.config)
+	// use FormUploader to ensure that the front-end progress is consistent with the back-end progress
+	uploader := storage.NewFormUploader(q.config)
 	ret := &storage.PutRet{}
-	putExtra := storage.RputV2Extra{}
-	err := resumeUploader.PutWithoutSize(context.Background(), ret, q.newUploadToken(name), name, reader, &putExtra)
+	putExtra := storage.PutExtra{}
+	size := int64(-1)
+	err := uploader.Put(context.Background(), ret, q.newUploadToken(name), name, reader, size, &putExtra)
 	if err != nil {
 		return nil, err
 	}
@@ -115,6 +117,10 @@ func (q *qiniuStorager) OpenMetadata(name string) (io.ReadCloser, error) {
 
 func (q *qiniuStorager) Delete(name string) error {
 	return q.delete(name)
+}
+
+func (q *qiniuStorager) Move(src, dest string) error {
+	return q.newBucketManager().Move(q.bucket, src, q.bucket, dest, true)
 }
 
 func (q *qiniuStorager) PublicURL(_, name string) (string, error) {

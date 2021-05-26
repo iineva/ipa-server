@@ -26,6 +26,7 @@ type Reader interface {
 	io.ReaderAt
 	io.Reader
 	io.Seeker
+	Size() int64
 }
 
 var (
@@ -33,6 +34,8 @@ var (
 )
 
 const (
+	tempDir = ".ipa_parser_temp"
+
 	// Payload/UnicornApp.app/AppIcon_TikTok76x76@2x~ipad.png
 	// Payload/UnicornApp.app/AppIcon76x76.png
 	newIconRegular   = `^Payload\/.*\.app\/AppIcon-?_?\w*(\d+(\.\d+)?)x(\d+(\.\d+)?)(@\dx)?(~ipad)?\.png$`
@@ -40,11 +43,25 @@ const (
 	infoPlistRegular = `^Payload\/.*\.app/Info.plist$`
 )
 
-func ParseAndStorageIPA(readerAt Reader, size int64, store storager.Storager) (*AppInfo, error) {
+type ParsedFiles struct {
+	Icon  string
+	Ipa   string
+	Plist string
+}
 
-	r, err := zip.NewReader(readerAt, size)
+func ParseAndStorageIPA(readerAt Reader, store storager.Storager) (*AppInfo, *ParsedFiles, error) {
+
+	// save ipa file
+	parsedFiles := &ParsedFiles{}
+	parsedFiles.Ipa = filepath.Join(tempDir, uuid.NewString())
+	if err := store.Save(parsedFiles.Ipa, readerAt); err != nil {
+		return nil, nil, err
+	}
+
+	readerAt.Seek(0, 0)
+	r, err := zip.NewReader(readerAt, readerAt.Size())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// match files
@@ -56,7 +73,7 @@ func ParseAndStorageIPA(readerAt Reader, size int64, store storager.Storager) (*
 		match, err := regexp.MatchString(infoPlistRegular, f.Name)
 		{
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			if match {
 				plistFile = f
@@ -67,7 +84,7 @@ func ParseAndStorageIPA(readerAt Reader, size int64, store storager.Storager) (*
 		match, err = regexp.MatchString(oldIconRegular, f.Name)
 		{
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			if match {
 				iconFiles = append(iconFiles, f)
@@ -78,7 +95,7 @@ func ParseAndStorageIPA(readerAt Reader, size int64, store storager.Storager) (*
 		match, _ = regexp.MatchString(newIconRegular, f.Name)
 		{
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			if match {
 				iconFiles = append(iconFiles, f)
@@ -87,7 +104,7 @@ func ParseAndStorageIPA(readerAt Reader, size int64, store storager.Storager) (*
 	}
 
 	if plistFile == nil {
-		return nil, ErrInfoPlistNotFound
+		return nil, nil, ErrInfoPlistNotFound
 	}
 
 	// select bigest icon file
@@ -96,7 +113,7 @@ func ParseAndStorageIPA(readerAt Reader, size int64, store storager.Storager) (*
 	for _, f := range iconFiles {
 		size, err := iconSize(f.Name)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		if size > maxSize {
 			maxSize = size
@@ -110,16 +127,16 @@ func ParseAndStorageIPA(readerAt Reader, size int64, store storager.Storager) (*
 		pf, err := plistFile.Open()
 		defer pf.Close()
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		b, err := ioutil.ReadAll(pf)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		info, err := plist.Parse(bytes.NewReader(b))
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		app = &AppInfo{
 			ID:         uuid.NewString(),
@@ -129,7 +146,7 @@ func ParseAndStorageIPA(readerAt Reader, size int64, store storager.Storager) (*
 			Build:      info.GetString("CFBundleVersion"),
 			Channel:    info.GetString("channel"),
 			Date:       time.Now(),
-			Size:       size,
+			Size:       readerAt.Size(),
 			NoneIcon:   iconFile == nil,
 			Metadata:   info,
 		}
@@ -157,19 +174,14 @@ func ParseAndStorageIPA(readerAt Reader, size int64, store storager.Storager) (*
 
 			// save icon file
 			buf.Seek(0, 0)
-			if err := store.Save(app.IconStorageName(), pngInput); err != nil {
-				return nil, err
+			parsedFiles.Icon = filepath.Join(tempDir, uuid.NewString())
+			if err := store.Save(parsedFiles.Icon, pngInput); err != nil {
+				return nil, nil, err
 			}
 		}
 	}
 
-	// save ipa file
-	readerAt.Seek(0, 0)
-	if err := store.Save(app.IpaStorageName(), readerAt); err != nil {
-		return nil, err
-	}
-
-	return app, nil
+	return app, parsedFiles, nil
 }
 
 func iconSize(fileName string) (s int, err error) {

@@ -53,7 +53,7 @@ type Service interface {
 	Find(id string, publicURL string) (*Item, error)
 	History(id string, publicURL string) ([]*Item, error)
 	Delete(id string) error
-	Add(r ipa.Reader, size int64) error
+	Add(r ipa.Reader) error
 	Plist(id, publicURL string) ([]byte, error)
 }
 
@@ -154,12 +154,24 @@ func (s *service) Delete(id string) error {
 	return nil
 }
 
-func (s *service) Add(r ipa.Reader, size int64) error {
+func (s *service) Add(r ipa.Reader) error {
 
 	// parse and save ipa
-	app, err := ipa.ParseAndStorageIPA(r, size, s.store)
+	app, parsedFiles, err := ipa.ParseAndStorageIPA(r, s.store)
 	if err != nil {
 		return err
+	}
+
+	// move temp file to target dir
+	err = s.store.Move(parsedFiles.Ipa, app.IpaStorageName())
+	if err != nil {
+		return err
+	}
+	if parsedFiles.Icon != "" {
+		err := s.store.Move(parsedFiles.Icon, app.IconStorageName())
+		if err != nil {
+			return err
+		}
 	}
 
 	// update list

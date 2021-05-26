@@ -21,14 +21,10 @@ func TestReadPlistInfo(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fi, err := f.Stat()
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	buf, err := seekbuf.Open(f, seekbuf.MemoryMode)
 	store := storager.NewOsFileStorager("/tmp/test")
-	info, err := ParseAndStorageIPA(buf, fi.Size(), store)
+	info, _, err := ParseAndStorageIPA(buf, store)
 
 	if err != nil {
 		t.Fatal(err)

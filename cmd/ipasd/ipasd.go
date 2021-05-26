@@ -38,7 +38,10 @@ func main() {
 	publicURL := flag.String("public-url", "", "server public url")
 	metadataPath := flag.String("meta-path", "appList.json", "metadata storage path, use random secret path to keep your metadata safer")
 	qiniuConfig := flag.String("qiniu", "", "qiniu config AK:SK:[ZONE]:BUCKET")
-	qiniuURL := flag.String("qiniu-url", "", "qiniu public url, https://cdn.example.com")
+	qiniuURL := flag.String("qiniu-url", "", "qiniu bucket public url, https://cdn.example.com")
+	aliossConfig := flag.String("alioss", "", "alicloud OSS config ENDPOINT:ID:SECRET:BUCKET")
+	aliossURL := flag.String("alioss-url", "", "alicloud OSS bucket public url")
+
 	flag.Usage = usage
 	flag.Parse()
 
@@ -49,15 +52,31 @@ func main() {
 
 	var store storager.Storager
 	if *qiniuConfig != "" && *qiniuURL != "" {
-		logger.Log("msg", "use qiniu storager")
+		logger.Log("msg", "used qiniu storager")
 		args := strings.Split(*qiniuConfig, ":")
+		if len(args) != 4 {
+			usage()
+			os.Exit(0)
+		}
 		s, err := storager.NewQiniuStorager(args[0], args[1], args[2], args[3], *qiniuURL)
 		if err != nil {
 			panic(err)
 		}
 		store = s
+	} else if *aliossConfig != "" && *aliossURL != "" {
+		logger.Log("msg", "used alioss storager")
+		args := strings.Split(*aliossConfig, ":")
+		if len(args) != 4 {
+			usage()
+			os.Exit(0)
+		}
+		s, err := storager.NewAliOssStorager(args[0], args[1], args[2], args[3], *aliossURL)
+		if err != nil {
+			panic(err)
+		}
+		store = s
 	} else {
-		logger.Log("msg", "use os file storager")
+		logger.Log("msg", "used os file storager")
 		store = storager.NewOsFileStorager(*storageDir)
 	}
 
