@@ -8,7 +8,7 @@ ipa-server 已经更新到v2, 使用golang重构, [老版本v1](https://github.c
 * 自动生成图标
 * 开箱即用
 * 只需要一台低配云主机, 一个域名
-* 支持生成文件完全存储在外部存储，目前支持 `七牛对象存储`
+* 支持生成文件完全存储在外部存储，目前支持 `七牛对象存储` `阿里云OSS`
 * 单二进制文件即可运行，编译后体积仅`10M`左右
 
 Home | Detail |
@@ -57,7 +57,7 @@ version: "2"
 
 services:
   web:
-    image: ineva/ipa-server:v2.0
+    image: ineva/ipa-server:latest
     container_name: ipa-server
     restart: unless-stopped
     environment:
