@@ -33,7 +33,7 @@ docker-compose up -d
 * ALIOSS_URL: alioss bucket public url, https://xxxx.oss-cn-shenzhen.aliyuncs.com
 * DELETE_ENABLED: delete app enabled, `true` `false`
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/iineva/ipa-server)
 
 
 # Docker Deploy

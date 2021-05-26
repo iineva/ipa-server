@@ -38,7 +38,7 @@ docker-compose up -d
 * ALIOSS_URL: Bucket域名，必须指定https才能保证ipa正常下载！例子: https://xxxx.oss-cn-shenzhen.aliyuncs.com
 * DELETE_ENABLED: 是否开启删除APP功能 `true` `false`
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/iineva/ipa-server)
 
 
 # 正式部署
