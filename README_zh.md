@@ -34,6 +34,8 @@ docker-compose up -d
 * PUBLIC_URL: 本服务的公网URL, 如果为空试用Heroku默认的 `$DOMAIN`
 * QINIU: 七牛配置 `AK:SK:[ZONE]:BUCKET`, `ZONE` 区域参数可选, 绝大多数情况可以自动检测
 * QINIU_URL: 七牛CDN对应的URL，注意需要开启HTTPS支持才能正常安装！例子：https://cdn.example.com
+* ALIOSS: 阿里云OSS配置 `ENDPOINT:ID:SECRET:BUCKET`
+* ALIOSS_URL: Bucket域名，必须指定https才能保证ipa正常下载！例子: https://xxxx.oss-cn-shenzhen.aliyuncs.com
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
@@ -62,8 +64,12 @@ services:
       - PUBLIC_URL=https://<YOUR_DOMAIN>
       # option, 七牛配置 AK:SK:[ZONE]:BUCKET
       - QINIU=
-      # option, 七牛DNS域名，注意要加 https://
+      # option, 七牛CDN域名，注意要加 https://
       - QINIU_URL=
+      # option, 阿里云OSS 配置 ENDPOINT:ID:SECRET:BUCKET
+      - ALIOSS=
+      # option, 阿里云OSS Bucket 域名，注意要加 https://
+      - ALIOSS_URL=
       # option, 元数据存储路径, 使用一个随机路径来保护元数据，因为在使用远程存储的时候，没有更好的方法防止外部直接访问元数据文件
       - META_PATH=appList.json
     volumes:

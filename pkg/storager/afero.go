@@ -2,9 +2,9 @@ package storager
 
 import (
 	"io"
-	"net/url"
 	"path/filepath"
 
+	"github.com/iineva/ipa-server/pkg/storager/helper"
 	"github.com/spf13/afero"
 )
 
@@ -51,11 +51,14 @@ func (f *oferoStorager) Delete(name string) error {
 	return f.fs.Remove(name)
 }
 
-func (f *oferoStorager) PublicURL(publicURL, name string) (string, error) {
-	u, err := url.Parse(publicURL)
+func (f *oferoStorager) Move(src, dest string) error {
+	err := f.fs.MkdirAll(filepath.Dir(dest), oferoStoragerDirPerm)
 	if err != nil {
-		return "", err
+		return err
 	}
-	u.Path = filepath.Join(u.Path, name)
-	return u.String(), nil
+	return f.fs.Rename(src, dest)
+}
+
+func (f *oferoStorager) PublicURL(publicURL, name string) (string, error) {
+	return helper.UrlJoin(publicURL, name)
 }

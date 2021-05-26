@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/url"
 	"path/filepath"
@@ -14,7 +13,6 @@ import (
 	"time"
 
 	"github.com/iineva/ipa-server/pkg/ipa"
-	"github.com/iineva/ipa-server/pkg/seekbuf"
 	"github.com/iineva/ipa-server/pkg/storager"
 )
 
@@ -55,7 +53,7 @@ type Service interface {
 	Find(id string, publicURL string) (*Item, error)
 	History(id string, publicURL string) ([]*Item, error)
 	Delete(id string) error
-	Add(r io.Reader, size int64) error
+	Add(r ipa.Reader) error
 	Plist(id, publicURL string) ([]byte, error)
 }
 
@@ -156,17 +154,24 @@ func (s *service) Delete(id string) error {
 	return nil
 }
 
-func (s *service) Add(r io.Reader, size int64) error {
-	buf, err := seekbuf.Open(r, seekbuf.FileMode)
-	defer buf.Close()
+func (s *service) Add(r ipa.Reader) error {
+
+	// parse and save ipa
+	app, parsedFiles, err := ipa.ParseAndStorageIPA(r, s.store)
 	if err != nil {
 		return err
 	}
 
-	// parse and save ipa
-	app, err := ipa.ParseAndStorageIPA(buf, size, s.store)
+	// move temp file to target dir
+	err = s.store.Move(parsedFiles.Ipa, app.IpaStorageName())
 	if err != nil {
 		return err
+	}
+	if parsedFiles.Icon != "" {
+		err := s.store.Move(parsedFiles.Icon, app.IconStorageName())
+		if err != nil {
+			return err
+		}
 	}
 
 	// update list

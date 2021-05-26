@@ -28,7 +28,9 @@ docker-compose up -d
 
 * PUBLIC_URL: public URL for this server, empty to use `$DOMAIN`
 * QINIU: qiniu config `AK:SK:[ZONE]:BUCKET`
-* QINIU_URL: qiniu public url, https://cdn.example.com
+* QINIU_URL: qiniu bucket public url, https://cdn.example.com
+* ALIOSS: alioss config `ENDPOINT:ID:SECRET:BUCKET`
+* ALIOSS_URL: alioss bucket public url, https://xxxx.oss-cn-shenzhen.aliyuncs.com
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
@@ -59,6 +61,10 @@ services:
       - QINIU=
       # option, qiniu public url
       - QINIU_URL=
+      # option, alicloud OSS config ENDPOINT:ID:SECRET:BUCKET
+      - ALIOSS=
+      # option, alioss public url
+      - ALIOSS_URL=
       # option, metadata storage path, use random secret path to keep your metadata safer in case of remote storage
       - META_PATH=appList.json
     volumes:
