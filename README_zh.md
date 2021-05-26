@@ -36,6 +36,7 @@ docker-compose up -d
 * QINIU_URL: 七牛CDN对应的URL，注意需要开启HTTPS支持才能正常安装！例子：https://cdn.example.com
 * ALIOSS: 阿里云OSS配置 `ENDPOINT:ID:SECRET:BUCKET`
 * ALIOSS_URL: Bucket域名，必须指定https才能保证ipa正常下载！例子: https://xxxx.oss-cn-shenzhen.aliyuncs.com
+* DELETE_ENABLED: 是否开启删除APP功能 `true` `false`
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
@@ -72,6 +73,8 @@ services:
       - ALIOSS_URL=
       # option, 元数据存储路径, 使用一个随机路径来保护元数据，因为在使用远程存储的时候，没有更好的方法防止外部直接访问元数据文件
       - META_PATH=appList.json
+      # 是否开启删除APP功能, true/false
+      - DELETE_ENABLED="false"
     volumes:
       - "/docker/data/ipa-server:/app/upload"
   caddy:

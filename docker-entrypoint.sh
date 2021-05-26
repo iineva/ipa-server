@@ -27,6 +27,10 @@ if [ -n "$ALIOSS_URL" ];then
     ipasd_args=$ipasd_args"-alioss-url $ALIOSS_URL "
 fi
 
+if [ "$DELETE_ENABLED" = "true" -o "$DELETE_ENABLED" = "1" ];then
+    ipasd_args=$ipasd_args"-del "
+fi
+
 if [ -n "$META_PATH" ];then
     ipasd_args=$ipasd_args"-meta-path $META_PATH "
 fi

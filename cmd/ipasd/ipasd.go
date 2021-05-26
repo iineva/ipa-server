@@ -41,6 +41,7 @@ func main() {
 	qiniuURL := flag.String("qiniu-url", "", "qiniu bucket public url, https://cdn.example.com")
 	aliossConfig := flag.String("alioss", "", "alicloud OSS config ENDPOINT:ID:SECRET:BUCKET")
 	aliossURL := flag.String("alioss-url", "", "alicloud OSS bucket public url, https://cdn.example.com")
+	enabledDelete := flag.Bool("del", false, "delete app enabled")
 
 	flag.Usage = usage
 	flag.Parse()
@@ -97,7 +98,7 @@ func main() {
 		service.EncodeJsonResponse,
 	)
 	deleteHandler := httptransport.NewServer(
-		service.LoggingMiddleware(logger, "/api/delete", *debug)(service.MakeDeleteEndpoint(srv)),
+		service.LoggingMiddleware(logger, "/api/delete", *debug)(service.MakeDeleteEndpoint(srv, *enabledDelete)),
 		service.DecodeDeleteRequest,
 		service.EncodeJsonResponse,
 	)

@@ -24,6 +24,12 @@ type param struct {
 	id        string
 }
 
+type delParam struct {
+	publicURL string
+	id        string
+	get       bool // get if delete enabled
+}
+
 type addParam struct {
 	file *pkgMultipart.FormFile
 }
@@ -68,9 +74,18 @@ func MakeAddEndpoint(srv Service) endpoint.Endpoint {
 	}
 }
 
-func MakeDeleteEndpoint(srv Service) endpoint.Endpoint {
+func MakeDeleteEndpoint(srv Service, enabledDelete bool) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		p := request.(param)
+		p := request.(delParam)
+		if p.get {
+			// check is delete enabled
+			return map[string]interface{}{"delete": enabledDelete}, nil
+		}
+
+		if !enabledDelete {
+			return nil, errors.New("no permission to delete")
+		}
+
 		err := srv.Delete(p.id)
 		if err != nil {
 			return nil, err
@@ -122,20 +137,15 @@ func DecodeAddRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	}
 
 	return addParam{file: f}, nil
-
-	// err := r.ParseMultipartForm(0)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// file, handler, err := r.FormFile("file")
-	// return addParam{file: file, size: handler.Size}, nil
 }
 
 func DecodeDeleteRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	// http://localhost/api/delete
-	if r.Method != http.MethodPost {
-		return nil, errors.New("404")
+
+	if r.Method == http.MethodGet {
+		return delParam{get: true}, nil
 	}
+
 	p := map[string]string{}
 	if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
 		return nil, err
@@ -146,7 +156,7 @@ func DecodeDeleteRequest(_ context.Context, r *http.Request) (interface{}, error
 		return nil, err
 	}
 
-	return param{id: id}, nil
+	return delParam{id: id, get: false}, nil
 }
 
 func DecodePlistRequest(_ context.Context, r *http.Request) (interface{}, error) {

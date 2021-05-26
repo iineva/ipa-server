@@ -31,6 +31,7 @@ docker-compose up -d
 * QINIU_URL: qiniu bucket public url, https://cdn.example.com
 * ALIOSS: alioss config `ENDPOINT:ID:SECRET:BUCKET`
 * ALIOSS_URL: alioss bucket public url, https://xxxx.oss-cn-shenzhen.aliyuncs.com
+* DELETE_ENABLED: delete app enabled, `true` `false`
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
@@ -67,6 +68,8 @@ services:
       - ALIOSS_URL=
       # option, metadata storage path, use random secret path to keep your metadata safer in case of remote storage
       - META_PATH=appList.json
+      # delete app enabled, true/false
+      - DELETE_ENABLED="false"
     volumes:
       - "/docker/data/ipa-server:/app/upload"
   caddy:

@@ -89,8 +89,7 @@
       });
     }
 
-    function loadInfo() {
-
+    function loadInfo(del) {
       IPA.fetch(`/api/info/${query().id}?v=${parseInt(new Date().getTime() / 1000)}`).then(row => {
         document.querySelector('#info').innerHTML = `
           <img class="icon" src="${row.webIcon}" alt="">
@@ -99,7 +98,7 @@
           <div>${IPA.langString('Beta')} - ${row.version}(Build ${row.build}) - ${IPA.sizeStr(row.size)}</div>
           <div class='date'>
             ${IPA.langString('Upload Date: ')}${dayjs(row.date).fromNow()}
-            <span onclick="onClickDelete('${row.id}')" class="delete">${IPA.langString('Delete')}</span>
+            <span onclick="onClickDelete('${row.id}')" ${del?"":"hidden"} class="delete">${IPA.langString('Delete')}</span>
           </div>
           <div class="qrcode"></div>
           <div onclick="onClickInstall('${row.plist}')" class="install">${IPA.langString('Download and Install')}</div>
@@ -140,7 +139,11 @@
         console.error(err)
       })
     }
-    window.addEventListener('load', loadInfo)
+    window.addEventListener('load', () => {
+      IPA.fetch(`/api/delete?v=${parseInt(new Date().getTime() / 1000)}`).then(d => {
+        loadInfo(d.delete)
+      })
+    })
   </script>
 </body>
 </html>
