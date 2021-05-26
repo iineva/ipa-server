@@ -6,13 +6,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
-	"path/filepath"
 
 	"github.com/qiniu/go-sdk/v7/auth"
 	"github.com/qiniu/go-sdk/v7/auth/qbox"
 	"github.com/qiniu/go-sdk/v7/storage"
 
+	"github.com/iineva/ipa-server/pkg/storager/helper"
 	"github.com/iineva/ipa-server/pkg/uuid"
 )
 
@@ -94,22 +93,6 @@ func (q *qiniuStorager) Save(name string, reader io.Reader) error {
 	return err
 }
 
-type runAfterReaderClose struct {
-	cb     func() error
-	reader io.ReadCloser
-}
-
-func (d *runAfterReaderClose) Close() error {
-	if err := d.reader.Close(); err != nil {
-		return err
-	}
-	return d.cb()
-}
-
-func (d *runAfterReaderClose) Read(p []byte) (int, error) {
-	return d.reader.Read(p)
-}
-
 func (q *qiniuStorager) OpenMetadata(name string) (io.ReadCloser, error) {
 
 	// copy to random file name to fix CDN cache
@@ -125,9 +108,9 @@ func (q *qiniuStorager) OpenMetadata(name string) (io.ReadCloser, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &runAfterReaderClose{reader: resp.Body, cb: func() error {
+	return helper.NewCallbackAfterReaderClose(resp.Body, func() error {
 		return q.delete(targetName)
-	}}, err
+	}), err
 }
 
 func (q *qiniuStorager) Delete(name string) error {
@@ -135,10 +118,5 @@ func (q *qiniuStorager) Delete(name string) error {
 }
 
 func (q *qiniuStorager) PublicURL(_, name string) (string, error) {
-	d, err := url.Parse(q.domain)
-	if err != nil {
-		return "", err
-	}
-	d.Path = filepath.Join(d.Path, name)
-	return d.String(), nil
+	return helper.UrlJoin(q.domain, name)
 }
