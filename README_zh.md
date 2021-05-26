@@ -57,7 +57,7 @@ version: "2"
 
 services:
   web:
-    image: ineva/ipa-server:v2.0
+    image: ineva/ipa-server:latest
     container_name: ipa-server
     restart: unless-stopped
     environment:
