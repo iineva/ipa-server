@@ -16,6 +16,7 @@ type aliossStorager struct {
 
 var _ Storager = (*aliossStorager)(nil)
 
+// endpoint: https://help.aliyun.com/document_detail/31837.htm
 func NewAliOssStorager(endpoint, accessKeyId, accessKeySecret, bucketName, domain string) (Storager, error) {
 	client, err := oss.New(endpoint, accessKeyId, accessKeySecret, oss.Timeout(10, 120))
 	if err != nil {

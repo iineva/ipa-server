@@ -82,6 +82,9 @@
                 'Confirm to Delete?': {
                     'zh-cn': '确认删除？'
                 },
+                'Delete Success!': {
+                    'zh-cn': '删除成功！'
+                },
             }
             const lang = (localStr[key] || key)[language().toLowerCase()]
             return lang ? lang : key

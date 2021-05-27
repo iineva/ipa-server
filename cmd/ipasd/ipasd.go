@@ -37,11 +37,9 @@ func main() {
 	storageDir := flag.String("dir", "upload", "upload data storage dir")
 	publicURL := flag.String("public-url", "", "server public url")
 	metadataPath := flag.String("meta-path", "appList.json", "metadata storage path, use random secret path to keep your metadata safer")
-	qiniuConfig := flag.String("qiniu", "", "qiniu config AK:SK:[ZONE]:BUCKET")
-	qiniuURL := flag.String("qiniu-url", "", "qiniu bucket public url, https://cdn.example.com")
-	aliossConfig := flag.String("alioss", "", "alicloud OSS config ENDPOINT:ID:SECRET:BUCKET")
-	aliossURL := flag.String("alioss-url", "", "alicloud OSS bucket public url, https://cdn.example.com")
 	enabledDelete := flag.Bool("del", false, "delete app enabled")
+	remoteCfg := flag.String("remote", "", "remote storager config, s3://ENDPOINT:AK:SK:BUCKET, alioss://ENDPOINT:AK:SK:BUCKET, qiniu://[ZONE]:AK:SK:BUCKET")
+	remoteURL := flag.String("remote-url", "", "remote storager public url, https://cdn.example.com")
 
 	flag.Usage = usage
 	flag.Parse()
@@ -52,30 +50,41 @@ func main() {
 	logger = log.With(logger, "ts", log.TimestampFormat(time.Now, "2006-01-02 15:04:05.000"), "caller", log.DefaultCaller)
 
 	var store storager.Storager
-	if *qiniuConfig != "" && *qiniuURL != "" {
-		logger.Log("msg", "used qiniu storager")
-		args := strings.Split(*qiniuConfig, ":")
+	if *remoteCfg != "" && *remoteURL != "" {
+		r := strings.Split(*remoteCfg, "://")
+		if len(r) != 2 {
+			usage()
+			os.Exit(0)
+		}
+		args := strings.Split(r[1], ":")
 		if len(args) != 4 {
 			usage()
 			os.Exit(0)
 		}
-		s, err := storager.NewQiniuStorager(args[0], args[1], args[2], args[3], *qiniuURL)
-		if err != nil {
-			panic(err)
+
+		switch r[0] {
+		case "s3":
+			logger.Log("msg", "used s3 storager")
+			s, err := storager.NewS3Storager(args[0], args[1], args[2], args[3], *remoteURL)
+			if err != nil {
+				panic(err)
+			}
+			store = s
+		case "alioss":
+			logger.Log("msg", "used alioss storager")
+			s, err := storager.NewAliOssStorager(args[0], args[1], args[2], args[3], *remoteURL)
+			if err != nil {
+				panic(err)
+			}
+			store = s
+		case "qiniu":
+			logger.Log("msg", "used qiniu storager")
+			s, err := storager.NewQiniuStorager(args[0], args[1], args[2], args[3], *remoteURL)
+			if err != nil {
+				panic(err)
+			}
+			store = s
 		}
-		store = s
-	} else if *aliossConfig != "" && *aliossURL != "" {
-		logger.Log("msg", "used alioss storager")
-		args := strings.Split(*aliossConfig, ":")
-		if len(args) != 4 {
-			usage()
-			os.Exit(0)
-		}
-		s, err := storager.NewAliOssStorager(args[0], args[1], args[2], args[3], *aliossURL)
-		if err != nil {
-			panic(err)
-		}
-		store = s
 	} else {
 		logger.Log("msg", "used os file storager")
 		store = storager.NewOsFileStorager(*storageDir)
