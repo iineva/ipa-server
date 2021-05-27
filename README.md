@@ -4,6 +4,15 @@ ipa-server is updated to v2, to [older version v1](https://github.com/iineva/ipa
 
 Upload and install IPA in web.
 
+## Key features
+
+* Automatic parse IPA packet information
+* Automatically generate icons
+* Out of the box
+* Only one low performance VPS and one domain name are needed
+* The generated files are completely stored in external storage. Currently, it supports `S3`, `Qiniu Object`, `Alibaba Cloud OSS`
+* A single binary build-in all you need, just only about 10Mb
+
 * [中文文档](README_zh.md)
 
 Home | Detail |
@@ -27,7 +36,7 @@ docker-compose up -d
 ### config
 
 * PUBLIC_URL: public URL for this server, empty to use `$DOMAIN`
-* REMOTE: remote storager config, s3://ENDPOINT:AK:SK:BUCKET, alioss://ENDPOINT:AK:SK:BUCKET, qiniu://[ZONE]:AK:SK:BUCKET
+* REMOTE: remote storager config, `s3://ENDPOINT:AK:SK:BUCKET` `alioss://ENDPOINT:AK:SK:BUCKET` `qiniu://[ZONE]:AK:SK:BUCKET`
 * REMOTE_URL: remote storager public url, https://cdn.example.com
 * DELETE_ENABLED: delete app enabled, `true` `false`
 

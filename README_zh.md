@@ -4,6 +4,8 @@ ipa-server 已经更新到v2, 使用golang重构, [老版本v1](https://github.c
 
 使用浏览器上传和部署 `.ipa` 文件
 
+## 关键特性
+
 * 自动识别ipa包内信息
 * 自动生成图标
 * 开箱即用
@@ -32,7 +34,7 @@ docker-compose up -d
 ### 配置
 
 * PUBLIC_URL: 本服务的公网URL, 如果为空试用Heroku默认的 `$DOMAIN`
-* REMOTE: option, 远程存储配置, s3://ENDPOINT:AK:SK:BUCKET, alioss://ENDPOINT:AK:SK:BUCKET, qiniu://[ZONE]:AK:SK:BUCKET
+* REMOTE: option, 远程存储配置, `s3://ENDPOINT:AK:SK:BUCKET` `alioss://ENDPOINT:AK:SK:BUCKET` `qiniu://[ZONE]:AK:SK:BUCKET`
 * REMOTE_URL: option, 远程存储访问URL, 注意需要开启HTTPS支持iOS才能正常安装！例子：https://cdn.example.com
 * DELETE_ENABLED: 是否开启删除APP功能 `true` `false`
 
