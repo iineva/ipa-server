@@ -10,7 +10,7 @@ Upload and install IPA in web.
 * Automatically generate icons
 * Out of the box
 * Only one low performance VPS and one domain name are needed
-* The generated files are completely stored in external storage. Currently, it supports `S3`, `Qiniu Object`, `Alibaba Cloud OSS`
+* The generated files are completely stored in external storage. Currently, it supports `S3` `Qiniu Object` `Alibaba Cloud OSS`
 * A single binary build-in all you need, just only about 10Mb
 
 * [中文文档](README_zh.md)
