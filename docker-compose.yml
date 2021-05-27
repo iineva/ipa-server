@@ -8,12 +8,14 @@ services:
     environment:
       # server public url
       - PUBLIC_URL=
-      # option, qiniu config AK:SK:[ZONE]:BUCKET
-      - QINIU=
-      # option, qiniu public url
-      - QINIU_URL=
+      # option, remote storager config, s3://ENDPOINT:AK:SK:BUCKET, alioss://ENDPOINT:AK:SK:BUCKET, qiniu://[ZONE]:AK:SK:BUCKET
+      - REMOTE=
+      # option, remote storager public url, https://cdn.example.com
+      - REMOTE_URL=
       # option, metadata storage path, use random secret path to keep your metadata safer in case of remote storage
       - META_PATH=appList.json
+      # delete app enabled, true/false
+      - DELETE_ENABLED=false
     ports:
       - "9008:8080"
     volumes:

@@ -27,10 +27,8 @@ docker-compose up -d
 ### config
 
 * PUBLIC_URL: public URL for this server, empty to use `$DOMAIN`
-* QINIU: qiniu config `AK:SK:[ZONE]:BUCKET`
-* QINIU_URL: qiniu bucket public url, https://cdn.example.com
-* ALIOSS: alioss config `ENDPOINT:ID:SECRET:BUCKET`
-* ALIOSS_URL: alioss bucket public url, https://xxxx.oss-cn-shenzhen.aliyuncs.com
+* REMOTE: remote storager config, s3://ENDPOINT:AK:SK:BUCKET, alioss://ENDPOINT:AK:SK:BUCKET, qiniu://[ZONE]:AK:SK:BUCKET
+* REMOTE_URL: remote storager public url, https://cdn.example.com
 * DELETE_ENABLED: delete app enabled, `true` `false`
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/iineva/ipa-server)
@@ -58,14 +56,10 @@ services:
     environment:
       # server public url
       - PUBLIC_URL=https://<YOUR_DOMAIN>
-      # option, qiniu config AK:SK:[ZONE]:BUCKET
-      - QINIU=
-      # option, qiniu public url
-      - QINIU_URL=
-      # option, alicloud OSS config ENDPOINT:ID:SECRET:BUCKET
-      - ALIOSS=
-      # option, alioss public url
-      - ALIOSS_URL=
+      # option, remote storager config, s3://ENDPOINT:AK:SK:BUCKET, alioss://ENDPOINT:AK:SK:BUCKET, qiniu://[ZONE]:AK:SK:BUCKET
+      - REMOTE=
+      # option, remote storager public url, https://cdn.example.com
+      - REMOTE_URL=
       # option, metadata storage path, use random secret path to keep your metadata safer in case of remote storage
       - META_PATH=appList.json
       # delete app enabled, true/false
