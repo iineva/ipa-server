@@ -5,7 +5,13 @@ import (
 )
 
 func TestQiniuUpload(t *testing.T) {
-	q, err := NewQiniuStorager("", "", "", "", "")
+	zone := ""
+	accessKeyId := "<yourAccessKeyId>"
+	accessKeySecret := "<yourAccessKeySecret>"
+	bucketName := "<yourBucketName>"
+	domain := "<yourDomain>"
+
+	q, err := NewQiniuStorager(zone, accessKeyId, accessKeySecret, bucketName, domain)
 	if err != nil {
 		t.Fatal(err)
 	}
