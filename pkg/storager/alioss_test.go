@@ -6,7 +6,7 @@ import (
 
 func TestAliOss(t *testing.T) {
 
-	endpoint := "http://oss-cn-shenzhen.aliyuncs.com"
+	endpoint := "oss-cn-shenzhen.aliyuncs.com"
 	accessKeyId := "<yourAccessKeyId>"
 	accessKeySecret := "<yourAccessKeySecret>"
 	bucketName := "<yourBucketName>"

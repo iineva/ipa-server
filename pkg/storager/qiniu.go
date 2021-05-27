@@ -31,7 +31,7 @@ var (
 
 // zone option: huadong:z0 huabei:z1 huanan:z2 northAmerica:na0 singapore:as0 fogCnEast1:fog-cn-east-1
 // domain required: https://file.example.com
-func NewQiniuStorager(accessKey, secretKey, zone, bucket, domain string) (Storager, error) {
+func NewQiniuStorager(zone, accessKey, secretKey, bucket, domain string) (Storager, error) {
 	config := &storage.Config{
 		UseHTTPS:      true,
 		UseCdnDomains: false,

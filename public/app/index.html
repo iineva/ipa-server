@@ -111,6 +111,12 @@
         instance.update().check().handlers(true)
       })
     }
+    function onWindowsLoad() {
+      IPA.fetch(`/api/delete?v=${parseInt(new Date().getTime() / 1000)}`).then(d => {
+        loadInfo(d.delete)
+      })
+    }
+
     function onClickInstall(plist) {
       window.location.href = 'itms-services://?action=download-manifest&url=' + plist
     }
@@ -132,18 +138,16 @@
           return
         }
         
-        if (confirm(`${json.msg}\n${IPA.langString('Back to home?')}`)) {
+        if (confirm(`${IPA.langString('Delete Success!')}\n${IPA.langString('Back to home?')}`)) {
           window.location.href = '/'
+        } else {
+          onWindowsLoad()
         }
       }).catch(err => {
         console.error(err)
       })
     }
-    window.addEventListener('load', () => {
-      IPA.fetch(`/api/delete?v=${parseInt(new Date().getTime() / 1000)}`).then(d => {
-        loadInfo(d.delete)
-      })
-    })
+    window.addEventListener('load', onWindowsLoad)
   </script>
 </body>
 </html>

@@ -32,10 +32,8 @@ docker-compose up -d
 ### 配置
 
 * PUBLIC_URL: 本服务的公网URL, 如果为空试用Heroku默认的 `$DOMAIN`
-* QINIU: 七牛配置 `AK:SK:[ZONE]:BUCKET`, `ZONE` 区域参数可选, 绝大多数情况可以自动检测
-* QINIU_URL: 七牛CDN对应的URL，注意需要开启HTTPS支持才能正常安装！例子：https://cdn.example.com
-* ALIOSS: 阿里云OSS配置 `ENDPOINT:ID:SECRET:BUCKET`
-* ALIOSS_URL: Bucket域名，必须指定https才能保证ipa正常下载！例子: https://xxxx.oss-cn-shenzhen.aliyuncs.com
+* REMOTE: option, 远程存储配置, s3://ENDPOINT:AK:SK:BUCKET, alioss://ENDPOINT:AK:SK:BUCKET, qiniu://[ZONE]:AK:SK:BUCKET
+* REMOTE_URL: option, 远程存储访问URL, 注意需要开启HTTPS支持iOS才能正常安装！例子：https://cdn.example.com
 * DELETE_ENABLED: 是否开启删除APP功能 `true` `false`
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/iineva/ipa-server)
@@ -63,14 +61,10 @@ services:
     environment:
       # 本服务公网IP
       - PUBLIC_URL=https://<YOUR_DOMAIN>
-      # option, 七牛配置 AK:SK:[ZONE]:BUCKET
-      - QINIU=
-      # option, 七牛CDN域名，注意要加 https://
-      - QINIU_URL=
-      # option, 阿里云OSS 配置 ENDPOINT:ID:SECRET:BUCKET
-      - ALIOSS=
-      # option, 阿里云OSS Bucket 域名，注意要加 https://
-      - ALIOSS_URL=
+      # option, 远程存储配置, s3://ENDPOINT:AK:SK:BUCKET, alioss://ENDPOINT:AK:SK:BUCKET, qiniu://[ZONE]:AK:SK:BUCKET
+      - REMOTE=
+      # option, 远程存储访问URL, https://cdn.example.com
+      - REMOTE_URL=
       # option, 元数据存储路径, 使用一个随机路径来保护元数据，因为在使用远程存储的时候，没有更好的方法防止外部直接访问元数据文件
       - META_PATH=appList.json
       # 是否开启删除APP功能, true/false
@@ -110,5 +104,7 @@ make
 
 - [ ] 设计全新的鉴权方式，初步考虑试用GitHub登录鉴权
 - [x] 支持七牛存储
+- [x] 支持阿里云OSS存储
+- [x] 支持S3存储
 - [x] 兼容v1产生数据，无缝升级
 - [ ] 支持命令行生成静态文件部署

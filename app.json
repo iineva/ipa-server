@@ -10,23 +10,13 @@
             "required": false,
             "value": ""
         },
-        "QINIU": {
-            "description": "qiniu config AK:SK:[ZONE]:BUCKET",
+        "REMOTE": {
+            "description": "remote storager config, s3://ENDPOINT:AK:SK:BUCKET, alioss://ENDPOINT:AK:SK:BUCKET, qiniu://[ZONE]:AK:SK:BUCKET",
             "required": false,
             "value": ""
         },
-        "QINIU_URL": {
-            "description": "qiniu bucket public url, https://cdn.example.com",
-            "required": false,
-            "value": ""
-        },
-        "ALIOSS": {
-            "description": "alicloud OSS config ENDPOINT:ID:SECRET:BUCKET",
-            "required": false,
-            "value": ""
-        },
-        "ALIOSS_URL": {
-            "description": "alicloud OSS bucket public url, https://cdn.example.com",
+        "REMOTE_URL": {
+            "description": "remote storager public url, https://cdn.example.com",
             "required": false,
             "value": ""
         },

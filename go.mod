@@ -4,6 +4,10 @@ go 1.16
 
 require (
 	github.com/aliyun/aliyun-oss-go-sdk v2.1.8+incompatible
+	github.com/aws/aws-sdk-go-v2 v1.6.0
+	github.com/aws/aws-sdk-go-v2/config v1.3.0
+	github.com/aws/aws-sdk-go-v2/credentials v1.2.1
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.9.0
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
 	github.com/go-kit/kit v0.10.0
 	github.com/google/uuid v1.2.0 // indirect

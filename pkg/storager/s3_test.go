@@ -4,17 +4,18 @@ import (
 	"testing"
 )
 
-func TestQiniuUpload(t *testing.T) {
-	zone := ""
+func TestS3(t *testing.T) {
+
+	endpoint := "oss-cn-shenzhen.aliyuncs.com"
 	accessKeyId := "<yourAccessKeyId>"
 	accessKeySecret := "<yourAccessKeySecret>"
 	bucketName := "<yourBucketName>"
 	domain := "<yourDomain>"
 
-	q, err := NewQiniuStorager(zone, accessKeyId, accessKeySecret, bucketName, domain)
+	a, err := NewS3Storager(endpoint, accessKeyId, accessKeySecret, bucketName, domain)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	testStorager(q, t)
+	testStorager(a, t)
 }
