@@ -77,7 +77,9 @@
   <script type="text/javascript">
 
     // init lazy load
-    const instance = Layzr()
+    const instance = Layzr({
+      threshold: 20
+    })
 
     function query() {
       const obj = {}
