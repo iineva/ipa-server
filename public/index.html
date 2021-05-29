@@ -97,7 +97,9 @@
     })
 
     // init lazy load
-    const instance = Layzr()
+    const instance = Layzr({
+      threshold: 20
+    })
 
     function loadList() {
       IPA.fetch(IPA.getApiUrl('/api/list')).then(list => {
