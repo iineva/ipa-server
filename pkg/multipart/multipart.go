@@ -17,7 +17,7 @@ type FormFile struct {
 	part     *multipart.Part
 	name     string // form name
 	filename string // file name
-	size     int64  // readed size
+	// size     int64  // readed size
 }
 
 var _ io.Reader = (*FormFile)(nil)
@@ -70,4 +70,12 @@ func (m *MultipartForm) multipartReader(allowMixed bool) (*multipart.Reader, err
 
 func (f *FormFile) Read(p []byte) (n int, err error) {
 	return f.part.Read(p)
+}
+
+func (f *FormFile) FileName() string {
+	return f.filename
+}
+
+func (f *FormFile) Name() string {
+	return f.name
 }

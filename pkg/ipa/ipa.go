@@ -15,7 +15,6 @@ import (
 
 	"github.com/iineva/ipa-server/pkg/plist"
 	"github.com/iineva/ipa-server/pkg/seekbuf"
-	"github.com/iineva/ipa-server/pkg/uuid"
 )
 
 var (
@@ -29,13 +28,6 @@ const (
 	oldIconRegular   = `^Payload\/.*\.app\/Icon-?_?\w*(\d+(\.\d+)?)?.png$`
 	infoPlistRegular = `^Payload\/.*\.app/Info.plist$`
 )
-
-type IPA struct {
-	ID   string
-	Info *InfoPlist
-	Icon image.Image
-	Size int64
-}
 
 // TODO: use InfoPlistIcon to parse icon files
 type InfoPlistIcon struct {
@@ -122,9 +114,8 @@ func Parse(readerAt io.ReaderAt, size int64) (*IPA, error) {
 			return nil, err
 		}
 		app = &IPA{
-			ID:   uuid.NewString(),
-			Info: info,
-			Size: size,
+			info: info,
+			size: size,
 		}
 	}
 
@@ -146,7 +137,7 @@ func Parse(readerAt io.ReaderAt, size int64) (*IPA, error) {
 	if err != nil {
 		// NOTE: ignore error
 	}
-	app.Icon = img
+	app.icon = img
 
 	return app, nil
 }

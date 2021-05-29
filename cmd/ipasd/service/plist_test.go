@@ -50,7 +50,7 @@ func TestNewInstallPlist(t *testing.T) {
 	app.Version = "1.0"
 	app.Identifier = "com.ineva.test"
 	app.Icon = "https://file.example.com/icon.png"
-	app.Ipa = "https://file.example.com/ipa.ipa"
+	app.Pkg = "https://file.example.com/ipa.ipa"
 
 	d, err := NewInstallPlist(app)
 	if err != nil {

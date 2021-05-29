@@ -59,11 +59,22 @@
     align-items: center;
 }
 
-#list .row .tag {
+.tag {
     padding: 0px 3px;
     font-size: 10px;
     color: #1890ff;
     border: 1px #1890ff solid;
     border-radius: 2px;
     margin-left: 6px;
+}
+
+#list .row .icon-tag {
+    width: 14px;
+    height: auto;
+    box-shadow: none;
+    margin: 0 0 0 4px;
+}
+
+#list .row .icon-tag.android {
+    width: 17px;
 }

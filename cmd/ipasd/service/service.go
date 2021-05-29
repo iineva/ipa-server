@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/iineva/ipa-server/pkg/apk"
 	"github.com/iineva/ipa-server/pkg/ipa"
 	"github.com/iineva/ipa-server/pkg/storager"
 	"github.com/iineva/ipa-server/pkg/uuid"
@@ -39,13 +40,16 @@ type Item struct {
 	Version    string    `json:"version"`
 	Identifier string    `json:"identifier"`
 
-	Ipa string `json:"ipa"`
+	// package download link
+	Pkg string `json:"pkg"`
 	// Icon to display on iOS desktop
 	Icon string `json:"icon"`
 	// Plist to install ipa
-	Plist string `json:"plist"`
+	Plist string `json:"plist,omitempty"`
 	// WebIcon to display on web
 	WebIcon string `json:"webIcon"`
+	// Type 0:ios 1:android
+	Type AppInfoType `json:"type"`
 
 	Current bool    `json:"current"`
 	History []*Item `json:"history,omitempty"`
@@ -60,7 +64,7 @@ type Service interface {
 	Find(id string, publicURL string) (*Item, error)
 	History(id string, publicURL string) ([]*Item, error)
 	Delete(id string) error
-	Add(r Reader) error
+	Add(r Reader, t AppInfoType) error
 	Plist(id, publicURL string) ([]byte, error)
 }
 
@@ -156,7 +160,7 @@ func (s *service) Delete(id string) error {
 		return err
 	}
 
-	if err := s.store.Delete(app.IpaStorageName()); err != nil {
+	if err := s.store.Delete(app.PackageStorageName()); err != nil {
 		return err
 	}
 	if !app.NoneIcon {
@@ -167,35 +171,11 @@ func (s *service) Delete(id string) error {
 	return nil
 }
 
-func (s *service) Add(r Reader) error {
+func (s *service) Add(r Reader, t AppInfoType) error {
 
-	// save ipa file to temp
-	ipaTempFileName := filepath.Join(tempDir, uuid.NewString())
-	if err := s.store.Save(ipaTempFileName, r); err != nil {
-		return err
-	}
-
-	// parse ipa
-	a, err := ipa.Parse(r, r.Size())
-	app := NewAppInfo(a)
+	app, err := s.addPackage(r, t)
 	if err != nil {
 		return err
-	}
-	// move temp ipa file to target location
-	err = s.store.Move(ipaTempFileName, app.IpaStorageName())
-	if err != nil {
-		return err
-	}
-
-	// try save icon file
-	if a.Icon != nil {
-		buf := &bytes.Buffer{}
-		err = png.Encode(buf, a.Icon)
-		if err == nil {
-			if err := s.store.Save(app.IconStorageName(), buf); err != nil {
-				// NOTE: ignore error
-			}
-		}
 	}
 
 	// update list
@@ -204,6 +184,51 @@ func (s *service) Add(r Reader) error {
 	s.lock.Unlock()
 
 	return s.saveMetadata()
+}
+
+func (s *service) addPackage(r Reader, t AppInfoType) (*AppInfo, error) {
+	// save ipa file to temp
+	pkgTempFileName := filepath.Join(tempDir, uuid.NewString())
+	if err := s.store.Save(pkgTempFileName, r); err != nil {
+		return nil, err
+	}
+
+	// parse package
+	var pkg Package
+	var err error
+	switch t {
+	case AppInfoTypeIpa:
+		pkg, err = ipa.Parse(r, r.Size())
+	case AppInfoTypeApk:
+		pkg, err = apk.Parse(r, r.Size())
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	// new AppInfo
+	app := NewAppInfo(pkg, t)
+	if err != nil {
+		return nil, err
+	}
+	// move temp package file to target location
+	err = s.store.Move(pkgTempFileName, app.PackageStorageName())
+	if err != nil {
+		return nil, err
+	}
+
+	// try save icon file
+	if pkg.Icon() != nil {
+		buf := &bytes.Buffer{}
+		err = png.Encode(buf, pkg.Icon())
+		if err == nil {
+			if err := s.store.Save(app.IconStorageName(), buf); err != nil {
+				// NOTE: ignore error
+			}
+		}
+	}
+
+	return app, nil
 }
 
 // save metadata
@@ -288,6 +313,13 @@ func (s *service) servicePublicURL(publicURL, name string) string {
 }
 
 func (s *service) itemInfo(row *AppInfo, publicURL string) *Item {
+
+	plist := ""
+	switch row.Type {
+	case AppInfoTypeIpa:
+		plist = s.servicePublicURL(publicURL, fmt.Sprintf("plist/%v.plist", row.ID))
+	}
+
 	return &Item{
 		// from AppInfo
 		ID:         row.ID,
@@ -298,10 +330,11 @@ func (s *service) itemInfo(row *AppInfo, publicURL string) *Item {
 		Identifier: row.Identifier,
 		Version:    row.Version,
 		Channel:    row.Channel,
+		Type:       row.Type,
 
-		Ipa:     s.storagerPublicURL(publicURL, row.IpaStorageName()),
+		Pkg:     s.storagerPublicURL(publicURL, row.PackageStorageName()),
+		Plist:   plist,
 		Icon:    s.iconPublicURL(publicURL, row),
-		Plist:   s.servicePublicURL(publicURL, fmt.Sprintf("plist/%v.plist", row.ID)),
 		WebIcon: s.iconPublicURL(publicURL, row),
 	}
 }

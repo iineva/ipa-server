@@ -104,19 +104,59 @@
             }
         }
 
+        window.ipaInstall = function(event, plist) {
+            event && event.stopPropagation()
+            window.location.href = 'itms-services://?action=download-manifest&url=' + plist
+        }
+
+        window.goToLink = function(event, link) {
+            event && event.stopPropagation()
+            window.location.href = link
+        }
+
+        onInstallClick = function(row) {
+            var needGoAppPage = !!(
+                row.type === 0 ?
+                (row.history || []).find(r => r.type === 1) :
+                (row.history || []).find(r => r.type === 0)
+            )
+            if (needGoAppPage) {
+                return `goToLink(null, '/app?id=${row.id}')`
+            }
+
+            if (row.type == 0) {
+                return `ipaInstall(event, '${row.plist}')`
+            }
+            return `goToLink(event, '${row.pkg}')`
+        }
+
         function createItem(row) {
+            var icons = [row.type === 0 ? 'ios' : 'android'];
+            (row.history || []).forEach(r => {
+                if (r.type === 0 && icons.indexOf('ios') === -1) {
+                    icons.push('ios')
+                }
+                if (r.type === 1 && icons.indexOf('android') === -1) {
+                    icons.push('android')
+                }
+            });
+            icons.sort().reverse()
             return `
-      <a class='row' href="/app?id=${row.id}">
+      <a class='row' onclick="${`goToLink(event, '/app?id=${row.id}')`}">
         <img data-normal="${row.webIcon}" alt="">
         <div class="center">
-          <div class="name">${row.name}${row.current?`<span class="tag">${langString('Current')}</span>`:''}</div>
+          <div class="name">
+            ${row.name}
+            ${icons.map(t => `<img class="icon-tag ${t}" src="/img/${t}.svg">`).join('')}
+            ${row.current ? `<span class="tag">${langString('Current')}</span>` : ''}
+          </div>
           <div class="version">
             <span>${row.version}(Build ${row.build})</span>
             <span>${row.channel && IPA.langString('Channel') + ': '+row.channel || ''}</span>
           </div>
           <div class="date">${IPA.langString('Upload Date: ')}${dayjs(row.date).fromNow()}</div>
         </div>
-        <div onclick="onClickInstall('${row.plist}')" class="right">${IPA.langString('Download')}</div>
+        <div onclick="${onInstallClick(row)}" style="pointer-events:auto;" class="right">${IPA.langString('Download')}</div>
       </a>
     `
   }
