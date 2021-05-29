@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"image/png"
+	"io"
 	"io/ioutil"
 	"net/url"
 	"path/filepath"
@@ -14,11 +16,20 @@ import (
 
 	"github.com/iineva/ipa-server/pkg/ipa"
 	"github.com/iineva/ipa-server/pkg/storager"
+	"github.com/iineva/ipa-server/pkg/uuid"
+)
+
+var (
+	ErrIdNotFound = errors.New("id not found")
+)
+
+const (
+	tempDir = ".ipa_parser_temp"
 )
 
 // Item to use on web interface
 type Item struct {
-	// from ipa.AppInfo
+	// from AppInfo
 	ID         string    `json:"id"`
 	Name       string    `json:"name"`
 	Date       time.Time `json:"date"`
@@ -44,21 +55,23 @@ func (i *Item) String() string {
 	return fmt.Sprintf("%+v", *i)
 }
 
-var (
-	ErrIdNotFound = errors.New("id not found")
-)
-
 type Service interface {
 	List(publicURL string) ([]*Item, error)
 	Find(id string, publicURL string) (*Item, error)
 	History(id string, publicURL string) ([]*Item, error)
 	Delete(id string) error
-	Add(r ipa.Reader) error
+	Add(r Reader) error
 	Plist(id, publicURL string) ([]byte, error)
 }
 
+type Reader interface {
+	io.Reader
+	io.ReaderAt
+	Size() int64
+}
+
 type service struct {
-	list         ipa.AppList
+	list         AppList
 	lock         sync.RWMutex
 	store        storager.Storager
 	publicURL    string
@@ -68,7 +81,7 @@ type service struct {
 func New(store storager.Storager, publicURL, metadataName string) Service {
 	s := &service{
 		store:        store,
-		list:         ipa.AppList{},
+		list:         AppList{},
 		publicURL:    publicURL, // use set public url
 		metadataName: metadataName,
 	}
@@ -125,7 +138,7 @@ func (s *service) History(id string, publicURL string) ([]*Item, error) {
 
 func (s *service) Delete(id string) error {
 	s.lock.Lock()
-	var app *ipa.AppInfo
+	var app *AppInfo
 	for i, a := range s.list {
 		if a.ID == id {
 			app = a
@@ -154,29 +167,40 @@ func (s *service) Delete(id string) error {
 	return nil
 }
 
-func (s *service) Add(r ipa.Reader) error {
+func (s *service) Add(r Reader) error {
 
-	// parse and save ipa
-	app, parsedFiles, err := ipa.ParseAndStorageIPA(r, s.store)
+	// save ipa file to temp
+	ipaTempFileName := filepath.Join(tempDir, uuid.NewString())
+	if err := s.store.Save(ipaTempFileName, r); err != nil {
+		return err
+	}
+
+	// parse ipa
+	a, err := ipa.Parse(r, r.Size())
+	app := NewAppInfo(a)
+	if err != nil {
+		return err
+	}
+	// move temp ipa file to target location
+	err = s.store.Move(ipaTempFileName, app.IpaStorageName())
 	if err != nil {
 		return err
 	}
 
-	// move temp file to target dir
-	err = s.store.Move(parsedFiles.Ipa, app.IpaStorageName())
-	if err != nil {
-		return err
-	}
-	if parsedFiles.Icon != "" {
-		err := s.store.Move(parsedFiles.Icon, app.IconStorageName())
-		if err != nil {
-			return err
+	// try save icon file
+	if a.Icon != nil {
+		buf := &bytes.Buffer{}
+		err = png.Encode(buf, a.Icon)
+		if err == nil {
+			if err := s.store.Save(app.IconStorageName(), buf); err != nil {
+				// NOTE: ignore error
+			}
 		}
 	}
 
 	// update list
 	s.lock.Lock()
-	s.list = append([]*ipa.AppInfo{app}, s.list...)
+	s.list = append([]*AppInfo{app}, s.list...)
 	s.lock.Unlock()
 
 	return s.saveMetadata()
@@ -207,7 +231,7 @@ func (s *service) tryMigrateOldData() error {
 		return err
 	}
 
-	list := ipa.AppList{}
+	list := AppList{}
 	if err := json.Unmarshal(b, &list); err != nil {
 		return err
 	}
@@ -228,7 +252,7 @@ func (s *service) Plist(id, publicURL string) ([]byte, error) {
 	return NewInstallPlist(app)
 }
 
-func (s *service) find(id string) (*ipa.AppInfo, error) {
+func (s *service) find(id string) (*AppInfo, error) {
 	for _, row := range s.list {
 		if row.ID == id {
 			return row, nil
@@ -263,9 +287,9 @@ func (s *service) servicePublicURL(publicURL, name string) string {
 	return u.String()
 }
 
-func (s *service) itemInfo(row *ipa.AppInfo, publicURL string) *Item {
+func (s *service) itemInfo(row *AppInfo, publicURL string) *Item {
 	return &Item{
-		// from ipa.AppInfo
+		// from AppInfo
 		ID:         row.ID,
 		Name:       row.Name,
 		Date:       row.Date,
@@ -282,7 +306,7 @@ func (s *service) itemInfo(row *ipa.AppInfo, publicURL string) *Item {
 	}
 }
 
-func (s *service) history(row *ipa.AppInfo, publicURL string) []*Item {
+func (s *service) history(row *AppInfo, publicURL string) []*Item {
 	list := []*Item{}
 	for _, i := range s.list {
 		if i.Identifier == row.Identifier {
@@ -294,7 +318,7 @@ func (s *service) history(row *ipa.AppInfo, publicURL string) []*Item {
 	return list
 }
 
-func (s *service) iconPublicURL(publicURL string, app *ipa.AppInfo) string {
+func (s *service) iconPublicURL(publicURL string, app *AppInfo) string {
 	name := app.IconStorageName()
 	if name == "" {
 		name = "img/default.png"

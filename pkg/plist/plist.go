@@ -4,25 +4,17 @@ import (
 	"io"
 
 	"howett.net/plist"
+
+	"github.com/iineva/ipa-server/pkg/seekbuf"
 )
 
-type Plist map[string]interface{}
-
-func Parse(r io.ReadSeeker) (Plist, error) {
-	decoder := plist.NewDecoder(r)
-	p := Plist{}
-	err := decoder.Decode(&p)
+func Decode(r io.Reader, d interface{}) error {
+	buf, err := seekbuf.Open(r, seekbuf.MemoryMode)
 	if err != nil {
-		return p, err
+		return err
 	}
-	return p, nil
-}
-
-func (p *Plist) GetString(k string) string {
-	if v, ok := (*p)[k]; ok {
-		if value, ok := v.(string); ok {
-			return value
-		}
+	if err := plist.NewDecoder(buf).Decode(d); err != nil {
+		return err
 	}
-	return ""
+	return nil
 }
