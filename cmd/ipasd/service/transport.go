@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -67,7 +68,12 @@ func MakeAddEndpoint(srv Service) endpoint.Endpoint {
 		}
 		defer buf.Close()
 
-		if err := srv.Add(buf); err != nil {
+		t := FileType(p.file.FileName())
+		if t == AppInfoTypeUnknown {
+			return nil, fmt.Errorf("do not support %s file", path.Ext(p.file.FileName()))
+		}
+
+		if err := srv.Add(buf, t); err != nil {
 			return nil, err
 		}
 		return map[string]string{"msg": "ok"}, nil

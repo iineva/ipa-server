@@ -41,7 +41,7 @@
 
 <body>
   <form>
-    <input class="file" type="file" name="file" value="" accept=".ipa" />
+    <input class="file" type="file" name="file" value="" accept=".ipa,.apk" />
     <div class="add-btn">Add</div>
   </form>
   <div id="list"></div>
@@ -106,10 +106,6 @@
         // start lazy load
         instance.update().check().handlers(true)
       })
-    }
-
-    function onClickInstall(plist) {
-      window.location.href = 'itms-services://?action=download-manifest&url=' + plist
     }
 
     window.addEventListener('load', loadList)

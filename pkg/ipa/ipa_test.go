@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/iineva/ipa-server/pkg/seekbuf"
-	"github.com/iineva/ipa-server/pkg/storager"
 )
 
 func TestReadPlistInfo(t *testing.T) {
@@ -21,21 +20,26 @@ func TestReadPlistInfo(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer f.Close()
+	fi, err := f.Stat()
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	buf, err := seekbuf.Open(f, seekbuf.MemoryMode)
-	store := storager.NewOsFileStorager("/tmp/test")
-	info, _, err := ParseAndStorageIPA(buf, store)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer buf.Close()
 
+	info, err := Parse(buf, fi.Size())
 	if err != nil {
 		t.Fatal(err)
 	}
 	if info == nil {
 		t.Fatal(errors.New("parse error"))
 	}
-	buf.Close()
-	f.Close()
 	printMemUsage()
-
 	// log.Printf("%+v", info)
 }
 

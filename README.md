@@ -2,11 +2,11 @@
 
 ipa-server is updated to v2, to [older version v1](https://github.com/iineva/ipa-server/tree/v1)
 
-Upload and install IPA in web.
+Upload and install Apple `.ipa` and Android `.apk` in web.
 
 ## Key features
 
-* Automatic parse IPA packet information
+* Automatic parse packet information
 * Automatically generate icons
 * Out of the box
 * Only one low performance VPS and one domain name are needed
@@ -17,7 +17,7 @@ Upload and install IPA in web.
 
 Home | Detail |
  --- | ---
-![](snapshot/en/1.jpeg) | ![](snapshot/en/2.jpeg)
+![](snapshot/en/1.jpg) | ![](snapshot/en/2.jpg)
 
 
 # Install for local trial

@@ -56,7 +56,18 @@
       text-decoration: underline;
     }
     #info .delete:hover {
-      cursor:pointer
+      cursor:pointer;
+    }
+    #info .date {
+      margin-top: 4px;
+      display: flex;
+    }
+    #info .date .title {
+      margin: 0 4px;
+    }
+    #info .type {
+      width: 16px;
+      height: auto;
     }
   </style>
 </head>
@@ -97,11 +108,12 @@
           <div>${row.channel && IPA.langString('Channel') + ': ' + row.channel || ''}</div>
           <div>${IPA.langString('Beta')} - ${row.version}(Build ${row.build}) - ${IPA.sizeStr(row.size)}</div>
           <div class='date'>
-            ${IPA.langString('Upload Date: ')}${dayjs(row.date).fromNow()}
+            <img class="type" src="/img/${row.type===0?'ios':'android'}.svg"></img>
+            <span class="title">${IPA.langString('Upload Date: ')}${dayjs(row.date).fromNow()}</span>
             <span onclick="onClickDelete('${row.id}')" ${del?"":"hidden"} class="delete">${IPA.langString('Delete')}</span>
           </div>
           <div class="qrcode"></div>
-          <div onclick="onClickInstall('${row.plist}')" class="install">${IPA.langString('Download and Install')}</div>
+          <div onclick="${onInstallClick(row)}" class="install">${IPA.langString('Download and Install')}</div>
         `
         document.querySelector('#list').innerHTML = row.history.map(row => IPA.createItem(row)).join('')
 
@@ -117,9 +129,6 @@
       })
     }
 
-    function onClickInstall(plist) {
-      window.location.href = 'itms-services://?action=download-manifest&url=' + plist
-    }
     function onClickDelete(id) {
       if (!confirm(IPA.langString('Confirm to Delete?'))) {
         return

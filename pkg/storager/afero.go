@@ -48,7 +48,30 @@ func (f *oferoStorager) OpenMetadata(name string) (io.ReadCloser, error) {
 }
 
 func (f *oferoStorager) Delete(name string) error {
-	return f.fs.Remove(name)
+	err := f.fs.Remove(name)
+	if err != nil {
+		return err
+	}
+	// auto delete empty dir
+	err = f.deleteEmptyDir(filepath.Dir(name))
+	if err != nil {
+		// NOTE: ignore error
+	}
+	return nil
+}
+
+func (f *oferoStorager) deleteEmptyDir(name string) error {
+	name = filepath.Clean(name)
+	if name == "." {
+		return nil
+	}
+
+	err := f.fs.Remove(name)
+	if err != nil {
+		return err
+	}
+
+	return f.deleteEmptyDir(filepath.Dir(name))
 }
 
 func (f *oferoStorager) Move(src, dest string) error {

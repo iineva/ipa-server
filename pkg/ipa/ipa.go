@@ -2,40 +2,26 @@ package ipa
 
 import (
 	"archive/zip"
-	"bytes"
 	"errors"
+	"image"
 	"image/png"
 	"io"
-	"io/ioutil"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/iineva/CgbiPngFix/ipaPng"
 
-	"github.com/iineva/ipa-server/pkg/common"
 	"github.com/iineva/ipa-server/pkg/plist"
 	"github.com/iineva/ipa-server/pkg/seekbuf"
-	"github.com/iineva/ipa-server/pkg/storager"
-	"github.com/iineva/ipa-server/pkg/uuid"
 )
-
-type Reader interface {
-	io.ReaderAt
-	io.Reader
-	io.Seeker
-	Size() int64
-}
 
 var (
 	ErrInfoPlistNotFound = errors.New("Info.plist not found")
 )
 
 const (
-	tempDir = ".ipa_parser_temp"
-
 	// Payload/UnicornApp.app/AppIcon_TikTok76x76@2x~ipad.png
 	// Payload/UnicornApp.app/AppIcon76x76.png
 	newIconRegular   = `^Payload\/.*\.app\/AppIcon-?_?\w*(\d+(\.\d+)?)x(\d+(\.\d+)?)(@\dx)?(~ipad)?\.png$`
@@ -43,25 +29,33 @@ const (
 	infoPlistRegular = `^Payload\/.*\.app/Info.plist$`
 )
 
-type ParsedFiles struct {
-	Icon  string
-	Ipa   string
-	Plist string
+// TODO: use InfoPlistIcon to parse icon files
+type InfoPlistIcon struct {
+	CFBundlePrimaryIcon struct {
+		CFBundleIconFiles []string `json:"CFBundleIconFiles,omitempty"`
+		CFBundleIconName  string   `json:"CFBundleIconName,omitempty"`
+	} `json:"CFBundlePrimaryIcon,omitempty"`
+}
+type InfoPlist struct {
+	CFBundleDisplayName        string        `json:"CFBundleDisplayName,omitempty"`
+	CFBundleExecutable         string        `json:"CFBundleExecutable,omitempty"`
+	CFBundleIconName           string        `json:"CFBundleIconName,omitempty"`
+	CFBundleIcons              InfoPlistIcon `json:"CFBundleIcons,omitempty"`
+	CFBundleIconsIpad          InfoPlistIcon `json:"CFBundleIcons~ipad,omitempty"`
+	CFBundleIdentifier         string        `json:"CFBundleIdentifier,omitempty"`
+	CFBundleName               string        `json:"CFBundleName,omitempty"`
+	CFBundleShortVersionString string        `json:"CFBundleShortVersionString,omitempty"`
+	CFBundleSupportedPlatforms []string      `json:"CFBundleSupportedPlatforms,omitempty"`
+	CFBundleVersion            string        `json:"CFBundleVersion,omitempty"`
+	// not standard
+	Channel string `json:"channel"`
 }
 
-func ParseAndStorageIPA(readerAt Reader, store storager.Storager) (*AppInfo, *ParsedFiles, error) {
+func Parse(readerAt io.ReaderAt, size int64) (*IPA, error) {
 
-	// save ipa file
-	parsedFiles := &ParsedFiles{}
-	parsedFiles.Ipa = filepath.Join(tempDir, uuid.NewString())
-	if err := store.Save(parsedFiles.Ipa, readerAt); err != nil {
-		return nil, nil, err
-	}
-
-	readerAt.Seek(0, 0)
-	r, err := zip.NewReader(readerAt, readerAt.Size())
+	r, err := zip.NewReader(readerAt, size)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	// match files
@@ -73,7 +67,7 @@ func ParseAndStorageIPA(readerAt Reader, store storager.Storager) (*AppInfo, *Pa
 		match, err := regexp.MatchString(infoPlistRegular, f.Name)
 		{
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
 			if match {
 				plistFile = f
@@ -84,7 +78,7 @@ func ParseAndStorageIPA(readerAt Reader, store storager.Storager) (*AppInfo, *Pa
 		match, err = regexp.MatchString(oldIconRegular, f.Name)
 		{
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
 			if match {
 				iconFiles = append(iconFiles, f)
@@ -95,7 +89,7 @@ func ParseAndStorageIPA(readerAt Reader, store storager.Storager) (*AppInfo, *Pa
 		match, _ = regexp.MatchString(newIconRegular, f.Name)
 		{
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
 			if match {
 				iconFiles = append(iconFiles, f)
@@ -103,8 +97,26 @@ func ParseAndStorageIPA(readerAt Reader, store storager.Storager) (*AppInfo, *Pa
 		}
 	}
 
+	// parse Info.plist
 	if plistFile == nil {
-		return nil, nil, ErrInfoPlistNotFound
+		return nil, ErrInfoPlistNotFound
+	}
+	var app *IPA
+	{
+		pf, err := plistFile.Open()
+		defer pf.Close()
+		if err != nil {
+			return nil, err
+		}
+		info := &InfoPlist{}
+		err = plist.Decode(pf, info)
+		if err != nil {
+			return nil, err
+		}
+		app = &IPA{
+			info: info,
+			size: size,
+		}
 	}
 
 	// select bigest icon file
@@ -113,75 +125,21 @@ func ParseAndStorageIPA(readerAt Reader, store storager.Storager) (*AppInfo, *Pa
 	for _, f := range iconFiles {
 		size, err := iconSize(f.Name)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		if size > maxSize {
 			maxSize = size
 			iconFile = f
 		}
 	}
-
-	// parse Info.plist
-	var app *AppInfo
-	{
-		pf, err := plistFile.Open()
-		defer pf.Close()
-		if err != nil {
-			return nil, nil, err
-		}
-		b, err := ioutil.ReadAll(pf)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		info, err := plist.Parse(bytes.NewReader(b))
-		if err != nil {
-			return nil, nil, err
-		}
-		app = &AppInfo{
-			ID:         uuid.NewString(),
-			Name:       common.Def(info.GetString("CFBundleDisplayName"), info.GetString("CFBundleName"), info.GetString("CFBundleExecutable")),
-			Version:    info.GetString("CFBundleShortVersionString"),
-			Identifier: info.GetString("CFBundleIdentifier"),
-			Build:      info.GetString("CFBundleVersion"),
-			Channel:    info.GetString("channel"),
-			Date:       time.Now(),
-			Size:       readerAt.Size(),
-			NoneIcon:   iconFile == nil,
-			Metadata:   info,
-		}
+	// parse icon
+	img, err := parseIconImage(iconFile)
+	if err != nil {
+		// NOTE: ignore error
 	}
+	app.icon = img
 
-	if iconFile != nil {
-		// try fix png for browser
-		f, err := iconFile.Open()
-		defer f.Close()
-		buf, _ := seekbuf.Open(f, seekbuf.MemoryMode)
-		defer buf.Close()
-		var pngInput io.Reader = buf
-		if err == nil {
-			if err == nil {
-				cgbi, err := ipaPng.Decode(buf)
-				if err == nil {
-					b := bytes.NewBuffer(make([]byte, 0))
-					err = png.Encode(b, cgbi.Img)
-					if err == nil {
-						// if png fix done, reset pngInput
-						pngInput = b
-					}
-				}
-			}
-
-			// save icon file
-			buf.Seek(0, 0)
-			parsedFiles.Icon = filepath.Join(tempDir, uuid.NewString())
-			if err := store.Save(parsedFiles.Icon, pngInput); err != nil {
-				return nil, nil, err
-			}
-		}
-	}
-
-	return app, parsedFiles, nil
+	return app, nil
 }
 
 func iconSize(fileName string) (s int, err error) {
@@ -209,4 +167,34 @@ func iconSize(fileName string) (s int, err error) {
 		}
 	}
 	return int(size), err
+}
+
+func parseIconImage(iconFile *zip.File) (image.Image, error) {
+
+	if iconFile == nil {
+		return nil, errors.New("icon file is nil")
+	}
+
+	f, err := iconFile.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	buf, err := seekbuf.Open(f, seekbuf.MemoryMode)
+	if err != nil {
+		return nil, err
+	}
+	defer buf.Close()
+
+	img, err := png.Decode(buf)
+	if err != nil {
+		// try fix to std png
+		cgbi, err := ipaPng.Decode(buf)
+		if err != nil {
+			return nil, err
+		}
+		img = cgbi.Img
+	}
+
+	return img, nil
 }

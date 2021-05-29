@@ -2,11 +2,11 @@
 
 ipa-server 已经更新到v2, 使用golang重构, [老版本v1](https://github.com/iineva/ipa-server/tree/v1)
 
-使用浏览器上传和部署 `.ipa` 文件
+使用浏览器上传和部署 苹果 `.ipa` 和 安卓 `.apk` 文件
 
 ## 关键特性
 
-* 自动识别ipa包内信息
+* 自动识别包内信息
 * 自动生成图标
 * 开箱即用
 * 只需要一台低配云主机, 一个域名
@@ -15,7 +15,7 @@ ipa-server 已经更新到v2, 使用golang重构, [老版本v1](https://github.c
 
 Home | Detail |
  --- | ---
-![](snapshot/en/1.jpeg) | ![](snapshot/en/2.jpeg)
+![](snapshot/zh-cn/1.jpg) | ![](snapshot/zh-cn/2.jpg)
 
 
 # 安装本地试用
