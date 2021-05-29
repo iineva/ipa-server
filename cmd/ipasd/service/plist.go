@@ -18,7 +18,7 @@ const plistTpl = `<?xml version="1.0" encoding="utf-8"?>
             <key>kind</key>
             <string>software-package</string>
             <key>url</key>
-            <string>{{ .Ipa }}</string>
+            <string>{{ .Pkg }}</string>
           </dict>
           <dict>
             <key>kind</key>
