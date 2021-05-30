@@ -9,7 +9,7 @@ Upload and install Apple `.ipa` and Android `.apk` in web.
 * Automatic parse packet information
 * Automatically generate icons
 * Out of the box
-* Only one low performance VPS and one domain name are needed
+* Free depoly, use `Heroku` as runtime and `Ali OSS` as storage, Both of them provide HTTPS access for free
 * The generated files are completely stored in external storage. Currently, it supports `S3` `Qiniu` `Alibaba Cloud OSS`
 * A single binary build-in all you need, just only about 10Mb
 
