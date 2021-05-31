@@ -42,10 +42,6 @@ docker-compose up -d
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/iineva/ipa-server)
 
-# Vercel Deploy
-
-[![Deploy](https://vercel.com/button)](https://vercel.com/new/project?template=https://github.com/iineva/ipa-server)
-
 # Docker Deploy
 
 * This server is not included SSL certificate. It must run behide the reverse proxy with HTTPS.

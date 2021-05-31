@@ -40,10 +40,6 @@ docker-compose up -d
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/iineva/ipa-server)
 
-# Vercel 部署
-
-[![Deploy](https://vercel.com/button)](https://vercel.com/new/project?template=https://github.com/iineva/ipa-server)
-
 # 正式部署
 
 * 本仓库代码不包含SSL证书部分，由于苹果在线安装必须具备HTTPS，所以本程序必须运行在HTTPS反向代理后端。
