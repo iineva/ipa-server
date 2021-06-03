@@ -11,8 +11,8 @@ RUN cd /src && go build cmd/ipasd/ipasd.go
 # runtime
 FROM ineva/alpine:3.10.3
 LABEL maintainer="Steven <s@ineva.cn>"
-WORKDIR /
-COPY --from=builder /src/ipasd /
+WORKDIR /app
+COPY --from=builder /src/ipasd /app
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 ENTRYPOINT /docker-entrypoint.sh
