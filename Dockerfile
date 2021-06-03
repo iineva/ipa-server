@@ -4,7 +4,10 @@ COPY go.mod /src/
 COPY go.sum /src/
 RUN cd /src && go mod download
 COPY . /src/
-RUN cd /src && CGO_ENABLED=0 go build cmd/ipasd/ipasd.go
+
+# install lzfse
+RUN git clone https://github.com/lzfse/lzfse && cd lzfse && make install INSTALL_PREFIX=/usr/local
+RUN cd /src && go build cmd/ipasd/ipasd.go
 
 # runtime
 FROM ineva/alpine:3.10.3

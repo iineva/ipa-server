@@ -90,6 +90,16 @@ services:
         }
 ```
 
+### Requirements
+
+* install [lzfse](https://github.com/lzfse/lzfse)
+
+```shell
+# macOS
+brew install lzfse
+```
+
+
 # Build or run from source code
 
 ```shell
