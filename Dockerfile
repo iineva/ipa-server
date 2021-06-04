@@ -6,7 +6,7 @@ RUN cd /src && go mod download
 COPY . /src/
 # install lzfse
 RUN git clone https://github.com/lzfse/lzfse && cd lzfse && make install INSTALL_PREFIX=/usr/local
-RUN cd /src && go build cmd/ipasd/ipasd.go
+RUN cd /src && go build -ldflags '-linkmode "external" --extldflags "-static"' cmd/ipasd/ipasd.go
 
 # runtime
 FROM ineva/alpine:3.10.3
