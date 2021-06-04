@@ -4,6 +4,10 @@ ipa-server is updated to v2, to [older version v1](https://github.com/iineva/ipa
 
 Upload and install Apple `.ipa` and Android `.apk` in web.
 
+# Demo
+
+<https://ipasd.herokuapp.com/>
+
 ## Key features
 
 * Automatic parse packet information
@@ -18,10 +22,6 @@ Upload and install Apple `.ipa` and Android `.apk` in web.
 Home | Detail |
  --- | ---
 ![](snapshot/en/1.jpg) | ![](snapshot/en/2.jpg)
-
-# Demo
-
-<https://ipasd.herokuapp.com/>
 
 # Install for local trial
 
@@ -92,16 +92,6 @@ services:
           proxy / web:8080
         }
 ```
-
-### Requirements
-
-* install [lzfse](https://github.com/lzfse/lzfse)
-
-```shell
-# macOS
-brew install lzfse
-```
-
 
 # Build or run from source code
 
