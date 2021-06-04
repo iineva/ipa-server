@@ -13,7 +13,7 @@ require (
 	github.com/google/uuid v1.2.0 // indirect
 	// TODO: wait PR merge github.com/poolqa/CgbiPngFix master
 	github.com/iineva/CgbiPngFix v0.0.0-20210523041253-b8869b346914
-	github.com/iineva/bom v0.0.0-20210603133923-3955f94909c4
+	github.com/iineva/bom v0.0.0-20210604102127-81d8bcf0765e
 	github.com/lithammer/shortuuid v3.0.0+incompatible
 	github.com/qiniu/go-sdk/v7 v7.9.5
 	github.com/satori/go.uuid v1.2.0 // indirect

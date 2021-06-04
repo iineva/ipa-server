@@ -11,7 +11,7 @@ Upload and install Apple `.ipa` and Android `.apk` in web.
 * Out of the box
 * Free depoly, use `Heroku` as runtime and `Ali OSS` as storage, Both of them provide HTTPS access for free
 * The generated files are completely stored in external storage. Currently, it supports `S3` `Qiniu` `Alibaba Cloud OSS`
-* A single binary build-in all you need, just only about 10Mb
+* A single binary build-in all you need
 
 * [中文文档](README_zh.md)
 
@@ -19,6 +19,9 @@ Home | Detail |
  --- | ---
 ![](snapshot/en/1.jpg) | ![](snapshot/en/2.jpg)
 
+# Demo
+
+<https://ipasd.herokuapp.com/>
 
 # Install for local trial
 
