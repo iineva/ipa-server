@@ -4,6 +4,10 @@ ipa-server 已经更新到v2, 使用golang重构, [老版本v1](https://github.c
 
 使用浏览器上传和部署 苹果 `.ipa` 和 安卓 `.apk` 文件
 
+# Demo
+
+<https://ipasd.herokuapp.com/>
+
 ## 关键特性
 
 * 自动识别包内信息
@@ -16,10 +20,6 @@ ipa-server 已经更新到v2, 使用golang重构, [老版本v1](https://github.c
 Home | Detail |
  --- | ---
 ![](snapshot/zh-cn/1.jpg) | ![](snapshot/zh-cn/2.jpg)
-
-# Demo
-
-<https://ipasd.herokuapp.com/>
 
 # 安装本地试用
 
