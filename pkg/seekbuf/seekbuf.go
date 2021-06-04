@@ -2,6 +2,7 @@
 package seekbuf
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -76,17 +77,18 @@ func (s *Buffer) ReadAt(p []byte, off int64) (n int, err error) {
 
 	total := off + int64(len(p))
 	if total > s.len {
+		more := total - s.len
 		switch s.mode {
 		case MemoryMode:
-			b := make([]byte, total-s.len)
-			n, err = s.reader.Read(b)
-			s.len += int64(n)
-			s.data = append(s.data, b[:n]...)
-		case FileMode:
-			rn, e := io.CopyN(s.f, s.reader, total-s.len)
-			n = int(rn)
+			buf := &bytes.Buffer{}
+			rn, e := io.CopyN(buf, s.reader, more)
 			err = e
-			s.len += int64(n)
+			s.len += int64(rn)
+			s.data = append(s.data, buf.Bytes()...)
+		case FileMode:
+			rn, e := io.CopyN(s.f, s.reader, more)
+			err = e
+			s.len += int64(rn)
 		}
 	}
 
@@ -104,12 +106,6 @@ func (b *Buffer) Read(p []byte) (n int, err error) {
 	return n, err
 }
 
-const (
-	seekStart   = 0
-	seekCurrent = 1
-	seekEnd     = 2
-)
-
 // Seek sets the offset for the next Read or Write on the buffer to offset, interpreted according to whence:
 // 0 means relative to the origin of the buffer, 1 means relative to the current offset, and 2 means relative to the end.
 // It returns the new offset and an error, if any.
@@ -118,20 +114,20 @@ func (b *Buffer) Seek(offset int64, whence int) (int64, error) {
 	defer b.lock.Unlock()
 	o := offset
 	switch whence {
-	case seekCurrent:
-		if o > 0 && b.pos+o >= int64(len(b.data)) {
-			return -1, fmt.Errorf("invalid offset %d", offset)
-		}
+	case io.SeekCurrent:
+		// if o > 0 && b.pos+o >= int64(len(b.data)) {
+		// 	return -1, fmt.Errorf("invalid offset %d", offset)
+		// }
 		b.pos += o
-	case seekStart:
-		if o > 0 && o >= int64(len(b.data)) {
-			return -1, fmt.Errorf("invalid offset %d", offset)
-		}
+	case io.SeekStart:
+		// if o > 0 && o >= int64(len(b.data)) {
+		// 	return -1, fmt.Errorf("invalid offset %d", offset)
+		// }
 		b.pos = o
-	case seekEnd:
-		if int64(len(b.data))+o < 0 {
-			return -1, fmt.Errorf("invalid offset %d", offset)
-		}
+	case io.SeekEnd:
+		// if int64(len(b.data))+o < 0 {
+		// 	return -1, fmt.Errorf("invalid offset %d", offset)
+		// }
 		b.pos = int64(len(b.data)) + o
 	default:
 		return -1, fmt.Errorf("invalid whence %d", whence)

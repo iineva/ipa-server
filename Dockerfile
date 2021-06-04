@@ -4,7 +4,7 @@ COPY go.mod /src/
 COPY go.sum /src/
 RUN cd /src && go mod download
 COPY . /src/
-RUN cd /src && CGO_ENABLED=0 go build cmd/ipasd/ipasd.go
+RUN cd /src && go build -ldflags '-linkmode "external" --extldflags "-static"' cmd/ipasd/ipasd.go
 
 # runtime
 FROM ineva/alpine:3.10.3

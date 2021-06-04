@@ -11,12 +11,15 @@ ipa-server 已经更新到v2, 使用golang重构, [老版本v1](https://github.c
 * 开箱即用
 * 可完全免费一键部署，使用`Heroku`作为runtime，`阿里OSS`做存储器，他们都提供免费的HTTPS访问
 * 支持生成文件完全存储在外部存储，目前支持 `S3` `七牛对象存储` `阿里云OSS`
-* 单二进制文件即可运行，编译后体积仅`10M`左右
+* 单二进制文件包含所有运行所需
 
 Home | Detail |
  --- | ---
 ![](snapshot/zh-cn/1.jpg) | ![](snapshot/zh-cn/2.jpg)
 
+# Demo
+
+<https://ipasd.herokuapp.com/>
 
 # 安装本地试用
 
