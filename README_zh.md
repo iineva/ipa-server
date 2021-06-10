@@ -11,7 +11,8 @@ ipa-server 已经更新到v2, 使用golang重构, [老版本v1](https://github.c
 ## 关键特性
 
 * 自动识别包内信息
-* 自动生成图标
+* 自动读取图标
+* 支持解析`ipa`文件`Assets.car`内图标
 * 开箱即用
 * 可完全免费一键部署，使用`Heroku`作为runtime，`阿里OSS`做存储器，他们都提供免费的HTTPS访问
 * 支持生成文件完全存储在外部存储，目前支持 `S3` `七牛对象存储` `阿里云OSS`
@@ -76,18 +77,21 @@ services:
     volumes:
       - "/docker/data/ipa-server:/app/upload"
   caddy:
-    image: abiosoft/caddy:0.11.5
-    restart: always
+    image: ineva/caddy:2.4.1
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: "50M"
+        max-file: "5"
     ports:
-      - "80:80"
-      - "443:443"
+      - 80:80
+      - 443:443
     entrypoint: |
-      sh -c 'echo "$$CADDY_CONFIG" > /etc/Caddyfile && /usr/bin/caddy --conf /etc/Caddyfile --log stdout'
+      sh -c 'echo "$$CADDY_CONFIG" > /srv/Caddyfile && /usr/bin/caddy run --config /srv/Caddyfile'
     environment:
       CADDY_CONFIG: |
         <YOUR_DOMAIN> {
-          gzip
-          proxy / web:8080
+          reverse_proxy web:8080
         }
 ```
 

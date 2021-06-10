@@ -12,6 +12,7 @@ Upload and install Apple `.ipa` and Android `.apk` in web.
 
 * Automatic parse packet information
 * Automatically generate icons
+* Parse icons from `Assets.car` 
 * Out of the box
 * Free depoly, use `Heroku` as runtime and `Ali OSS` as storage, Both of them provide HTTPS access for free
 * The generated files are completely stored in external storage. Currently, it supports `S3` `Qiniu` `Alibaba Cloud OSS`
@@ -78,18 +79,21 @@ services:
     volumes:
       - "/docker/data/ipa-server:/app/upload"
   caddy:
-    image: abiosoft/caddy:0.11.5
-    restart: always
+    image: ineva/caddy:2.4.1
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: "50M"
+        max-file: "5"
     ports:
-      - "80:80"
-      - "443:443"
+      - 80:80
+      - 443:443
     entrypoint: |
-      sh -c 'echo "$$CADDY_CONFIG" > /etc/Caddyfile && /usr/bin/caddy --conf /etc/Caddyfile --log stdout'
+      sh -c 'echo "$$CADDY_CONFIG" > /srv/Caddyfile && /usr/bin/caddy run --config /srv/Caddyfile'
     environment:
       CADDY_CONFIG: |
         <YOUR_DOMAIN> {
-          gzip
-          proxy / web:8080
+          reverse_proxy web:8080
         }
 ```
 
