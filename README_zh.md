@@ -56,8 +56,7 @@ docker-compose up -d
 
 # ***** 更换所有 <YOUR_DOMAIN> 成你的真实域名 *****
 
-version: "2"
-
+version: "3"
 services:
   web:
     image: ineva/ipa-server:latest
@@ -79,10 +78,6 @@ services:
   caddy:
     image: ineva/caddy:2.4.1
     restart: unless-stopped
-    logging:
-      options:
-        max-size: "50M"
-        max-file: "5"
     ports:
       - 80:80
       - 443:443
