@@ -21,7 +21,7 @@
 
     /* form  */
     form {
-      display: none;
+       display: flex;
     }
 
     form .file {
@@ -46,10 +46,6 @@
   </form>
   <div id="list"></div>
   <script type="text/javascript">
-
-    if (IPA.isPC) {
-      document.querySelector('form').style.display = 'flex'
-    }
 
     function updateAddProgress(progress) {
       const add = document.querySelector(".add-btn")
