@@ -1,4 +1,5 @@
 <html>
+
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -18,6 +19,7 @@
       font-size: 1em;
       font-family: sans-serif;
     }
+
     #info {
       display: flex;
       flex-direction: column;
@@ -27,22 +29,26 @@
       padding: 4em 0 0 0;
       font-weight: 100;
     }
+
     #info .name {
       color: #505556;
       font-size: 1.6em;
       font-weight: 500;
       margin: 1em 0;
     }
+
     #info img.icon {
       width: 7.5em;
       height: 7.5em;
       border-radius: 20%;
       box-shadow: 0 0 4px #eee;
     }
+
     #info .qrcode img {
       margin: 1em;
       width: 10rem;
     }
+
     #info .install {
       background: #1890ff;
       border-radius: 5em;
@@ -52,25 +58,38 @@
       color: #fff;
       margin: 2em 0;
     }
+
     #info .delete {
       text-decoration: underline;
     }
+
     #info .delete:hover {
-      cursor:pointer;
+      cursor: pointer;
     }
+
     #info .date {
       margin-top: 4px;
       display: flex;
     }
+
     #info .date .title {
       margin: 0 4px;
     }
+
     #info .type {
       width: 16px;
       height: auto;
     }
+
+    #info .meta-content {
+      margin: 0 18px;
+      word-break: break-all;
+      font-size: 14px;
+      line-height: 18px;
+    }
   </style>
 </head>
+
 <body>
   <div id="info"></div>
   <div id="list"></div>
@@ -96,26 +115,31 @@
         text: window.location.href,
         width: 256,
         height: 256,
-        colorDark : "#000000",
-        colorLight : "#ffffff",
-        correctLevel : QRCode.CorrectLevel.H
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
       });
     }
 
     function loadInfo(del) {
       IPA.fetch(`/api/info/${query().id}?v=${parseInt(new Date().getTime() / 1000)}`).then(row => {
+        const filter = (row.metaDataFilter || []).map(r => `${r}`.toLowerCase())
+        const meta = Object.keys(row.metaData || {})
+          .map(k => ({ name: k, value: (row.metaData || {})[k] }))
+          .filter(r => r.value && filter.indexOf(r.name.toLocaleLowerCase()) !== -1)
         document.querySelector('#info').innerHTML = `
           <img class="icon" src="${row.webIcon}" alt="">
           <div class="name">${row.name}</div>
           <div>${row.channel && IPA.langString('Channel') + ': ' + row.channel || ''}</div>
           <div>${IPA.langString('Beta')} - ${row.version}(Build ${row.build}) - ${IPA.sizeStr(row.size)}</div>
           <div class='date'>
-            <img class="type" src="/img/${row.type===0?'ios':'android'}.svg"></img>
+            <img class="type" src="/img/${row.type === 0 ? 'ios' : 'android'}.svg"></img>
             <span class="title">${IPA.langString('Upload Date: ')}${dayjs(row.date).fromNow()}</span>
-            <span onclick="onClickDelete('${row.id}')" ${del?"":"hidden"} class="delete">${IPA.langString('Delete')}</span>
+            <span onclick="onClickDelete('${row.id}')" ${del ? "" : "hidden"} class="delete">${IPA.langString('Delete')}</span>
           </div>
           <div class="qrcode"></div>
           <div onclick="${onInstallClick(row)}" class="install">${IPA.langString('Download and Install')}</div>
+          <div class="meta"><div class="meta-content">${meta.map(r => `<li>${r.name}: ${r.value}</li>`).join('')}</div></div>
         `
         document.querySelector('#list').innerHTML = row.history.map(row => IPA.createItem(row)).join('')
 
@@ -148,7 +172,7 @@
           alert(json.err)
           return
         }
-        
+
         if (confirm(`${IPA.langString('Delete Success!')}\n${IPA.langString('Back to home?')}`)) {
           window.location.href = '/'
         } else {
@@ -161,4 +185,5 @@
     window.addEventListener('load', onWindowsLoad)
   </script>
 </body>
+
 </html>

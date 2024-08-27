@@ -73,10 +73,11 @@ func MakeAddEndpoint(srv Service) endpoint.Endpoint {
 			return nil, fmt.Errorf("do not support %s file", path.Ext(p.file.FileName()))
 		}
 
-		if err := srv.Add(buf, t); err != nil {
+		app, err := srv.Add(buf, t)
+		if err != nil {
 			return nil, err
 		}
-		return map[string]string{"msg": "ok"}, nil
+		return map[string]interface{}{"msg": "ok", "data": app}, nil
 	}
 }
 
