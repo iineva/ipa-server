@@ -120,7 +120,8 @@
                 (row.history || []).find(r => r.type === 1) :
                 (row.history || []).find(r => r.type === 0)
             )
-            if (needGoAppPage) {
+            // if (needGoAppPage) {
+            if (false) {
                 return `goToLink(null, '/app?id=${row.id}')`
             }
 
