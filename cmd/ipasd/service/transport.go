@@ -83,21 +83,23 @@ func MakeAddEndpoint(srv Service) endpoint.Endpoint {
 
 func MakeDeleteEndpoint(srv Service, enabledDelete bool) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		p := request.(delParam)
-		if p.get {
-			// check is delete enabled
-			return map[string]interface{}{"delete": enabledDelete}, nil
-		}
-
 		if !enabledDelete {
 			return nil, errors.New("no permission to delete")
 		}
 
+		p := request.(delParam)
 		err := srv.Delete(p.id)
 		if err != nil {
 			return nil, err
 		}
 		return map[string]string{"msg": "ok"}, nil
+	}
+}
+
+func MakeGetDeleteEndpoint(srv Service, enabledDelete bool) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		// check is delete enabled
+		return map[string]interface{}{"delete": enabledDelete}, nil
 	}
 }
 

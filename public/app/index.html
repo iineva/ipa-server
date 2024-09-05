@@ -126,7 +126,7 @@
         const filter = (row.metaDataFilter || []).map(r => `${r}`.toLowerCase())
         const meta = Object.keys(row.metaData || {})
           .map(k => ({ name: k, value: (row.metaData || {})[k] }))
-          .filter(r => r.value && filter.indexOf(r.name.toLocaleLowerCase()) !== -1)
+          .filter(r => r.value && (filter.length === 0 || filter.indexOf(r.name.toLocaleLowerCase()) !== -1))
         document.querySelector('#info').innerHTML = `
           <img class="icon" src="${row.webIcon}" alt="">
           <div class="name">${row.name}</div>
@@ -150,8 +150,10 @@
       })
     }
     function onWindowsLoad() {
-      IPA.fetch(`/api/delete?v=${parseInt(new Date().getTime() / 1000)}`).then(d => {
+      IPA.fetch(`/api/delete/get?v=${parseInt(new Date().getTime() / 1000)}`).then(d => {
         loadInfo(d.delete)
+      }).catch(e => {
+        loadInfo(false)
       })
     }
 

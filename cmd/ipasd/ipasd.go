@@ -34,6 +34,8 @@ func main() {
 	addr := flag.String("addr", "0.0.0.0", "bind addr")
 	port := flag.String("port", "8080", "bind port")
 	debug := flag.Bool("d", false, "enable debug logging")
+	user := flag.String("user", "", "basic auth username")
+	pass := flag.String("pass", "", "basic auth password")
 	storageDir := flag.String("dir", "upload", "upload data storage dir")
 	publicURL := flag.String("public-url", "", "server public url")
 	metadataPath := flag.String("meta-path", "appList.json", "metadata storage path, use random secret path to keep your metadata safer")
@@ -91,10 +93,12 @@ func main() {
 	}
 
 	srv := service.New(store, *publicURL, *metadataPath)
+	basicAuth := service.BasicAuthMiddleware(*user, *pass, "My Realm")
 	listHandler := httptransport.NewServer(
-		service.LoggingMiddleware(logger, "/api/list", *debug)(service.MakeListEndpoint(srv)),
+		basicAuth(service.LoggingMiddleware(logger, "/api/list", *debug)(service.MakeListEndpoint(srv))),
 		service.DecodeListRequest,
 		service.EncodeJsonResponse,
+		httptransport.ServerBefore(httptransport.PopulateRequestContext),
 	)
 	findHandler := httptransport.NewServer(
 		service.LoggingMiddleware(logger, "/api/info", *debug)(service.MakeFindEndpoint(srv)),
@@ -102,14 +106,22 @@ func main() {
 		service.EncodeJsonResponse,
 	)
 	addHandler := httptransport.NewServer(
-		service.LoggingMiddleware(logger, "/api/upload", *debug)(service.MakeAddEndpoint(srv)),
+		basicAuth(service.LoggingMiddleware(logger, "/api/upload", *debug)(service.MakeAddEndpoint(srv))),
 		service.DecodeAddRequest,
 		service.EncodeJsonResponse,
+		httptransport.ServerBefore(httptransport.PopulateRequestContext),
 	)
 	deleteHandler := httptransport.NewServer(
-		service.LoggingMiddleware(logger, "/api/delete", *debug)(service.MakeDeleteEndpoint(srv, *enabledDelete)),
+		basicAuth(service.LoggingMiddleware(logger, "/api/delete", *debug)(service.MakeDeleteEndpoint(srv, *enabledDelete))),
 		service.DecodeDeleteRequest,
 		service.EncodeJsonResponse,
+		httptransport.ServerBefore(httptransport.PopulateRequestContext),
+	)
+	deleteGetHandler := httptransport.NewServer(
+		service.LoggingMiddleware(logger, "/api/delete/get", *debug)(service.MakeGetDeleteEndpoint(srv, *enabledDelete)),
+		service.DecodeDeleteRequest,
+		service.EncodeJsonResponse,
+		httptransport.ServerBefore(httptransport.PopulateRequestContext),
 	)
 	plistHandler := httptransport.NewServer(
 		service.LoggingMiddleware(logger, "/plist", *debug)(service.MakePlistEndpoint(srv)),
@@ -122,6 +134,7 @@ func main() {
 	serve.Handle("/api/info/", findHandler)
 	serve.Handle("/api/upload", addHandler)
 	serve.Handle("/api/delete", deleteHandler)
+	serve.Handle("/api/delete/get", deleteGetHandler)
 	serve.Handle("/plist/", plistHandler)
 
 	// static files
@@ -131,7 +144,6 @@ func main() {
 		httpfs.NewAferoFS(uploadFS),
 	)
 	serve.Handle("/", redirect(map[string]string{
-		"/key": "/key.html",
 		// random path to block local metadata
 		fmt.Sprintf("/%s", *metadataPath): fmt.Sprintf("/%s", uuid.NewString()),
 	}, http.FileServer(staticFS)))
