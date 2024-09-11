@@ -9,22 +9,29 @@
         // fetch with progress
         function fetch(url, opts = {}, onProgress) {
             return new Promise((res, rej) => {
-                var xhr = new XMLHttpRequest()
-                xhr.open(opts.method || 'get', url)
-                for (var k in opts.headers || {})
-                    xhr.setRequestHeader(k, opts.headers[k])
-                xhr.onload = e => res(JSON.parse(e.target.responseText))
-                xhr.onerror = rej
-                if (xhr.upload && onProgress)
-                    xhr.upload.onprogress = onProgress
-                xhr.send(opts.body)
+                try {
+                    var xhr = new XMLHttpRequest()
+                    xhr.open(opts.method || 'get', url)
+                    for (var k in opts.headers || {})
+                        xhr.setRequestHeader(k, opts.headers[k])
+                    xhr.onload = e => {
+                        try {
+                            res(JSON.parse(e.target.responseText))
+                        } catch (e) {
+                            rej(e)
+                        }
+                    }
+                    xhr.onerror = rej
+                    if (xhr.upload && onProgress)
+                        xhr.upload.onprogress = onProgress
+                    xhr.send(opts.body)    
+                } catch (e) {
+                    rej(e)
+                }
             });
         }
 
         function getApiUrl(path) {
-            if (window.localStorage.getItem('ACCESS_KEY')) {
-                return path + '?key=' + window.localStorage.getItem('ACCESS_KEY') + `&v=${parseInt(new Date().getTime() / 1000)}`
-            }
             return path
         }
 
@@ -111,6 +118,7 @@
 
         window.goToLink = function(event, link) {
             event && event.stopPropagation()
+            if (!link) return
             window.location.href = link
         }
 
@@ -120,7 +128,8 @@
                 (row.history || []).find(r => r.type === 1) :
                 (row.history || []).find(r => r.type === 0)
             )
-            if (needGoAppPage) {
+            // if (needGoAppPage) {
+            if (false) {
                 return `goToLink(null, '/app?id=${row.id}')`
             }
 
@@ -142,7 +151,7 @@
             });
             icons.sort().reverse()
             return `
-      <a class='row' onclick="${`goToLink(event, '/app?id=${row.id}')`}">
+      <a class='row' onclick="${row.current ? '' : `goToLink(event, '/app?id=${row.id}')`}">
         <img data-normal="${row.webIcon}" alt="">
         <div class="center">
           <div class="name">

@@ -3,8 +3,10 @@ package service
 import (
 	"context"
 	"fmt"
+	stdLog "log"
 	"time"
 
+	basic "github.com/go-kit/kit/auth/basic"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -50,4 +52,14 @@ func LoggingMiddleware(logger log.Logger, name string, debug bool) endpoint.Midd
 			return
 		}
 	}
+}
+
+func BasicAuthMiddleware(user, pass, realm string) endpoint.Middleware {
+	if user == "" {
+		return func(e endpoint.Endpoint) endpoint.Endpoint {
+			return e
+		}
+	}
+	stdLog.Println(user, pass, realm)
+	return basic.AuthMiddleware(user, pass, realm)
 }

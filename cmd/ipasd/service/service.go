@@ -9,8 +9,10 @@ import (
 	"io"
 	"io/ioutil"
 	"net/url"
+	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -40,6 +42,9 @@ type Item struct {
 	Version    string    `json:"version"`
 	Identifier string    `json:"identifier"`
 
+	MetaData       map[string]interface{} `json:"metaData"`
+	MetaDataFilter []string               `json:"metaDataFilter"`
+
 	// package download link
 	Pkg string `json:"pkg"`
 	// Icon to display on iOS desktop
@@ -64,7 +69,7 @@ type Service interface {
 	Find(id string, publicURL string) (*Item, error)
 	History(id string, publicURL string) ([]*Item, error)
 	Delete(id string) error
-	Add(r Reader, t AppInfoType) error
+	Add(r Reader, t AppInfoType) (*AppInfo, error)
 	Plist(id, publicURL string) ([]byte, error)
 }
 
@@ -171,11 +176,11 @@ func (s *service) Delete(id string) error {
 	return nil
 }
 
-func (s *service) Add(r Reader, t AppInfoType) error {
+func (s *service) Add(r Reader, t AppInfoType) (*AppInfo, error) {
 
 	app, err := s.addPackage(r, t)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// update list
@@ -183,7 +188,7 @@ func (s *service) Add(r Reader, t AppInfoType) error {
 	s.list = append([]*AppInfo{app}, s.list...)
 	s.lock.Unlock()
 
-	return s.saveMetadata()
+	return app, s.saveMetadata()
 }
 
 func (s *service) addPackage(r Reader, t AppInfoType) (*AppInfo, error) {
@@ -208,9 +213,6 @@ func (s *service) addPackage(r Reader, t AppInfoType) (*AppInfo, error) {
 
 	// new AppInfo
 	app := NewAppInfo(pkg, t)
-	if err != nil {
-		return nil, err
-	}
 	// move temp package file to target location
 	err = s.store.Move(pkgTempFileName, app.PackageStorageName())
 	if err != nil {
@@ -320,6 +322,14 @@ func (s *service) itemInfo(row *AppInfo, publicURL string) *Item {
 		plist = s.servicePublicURL(publicURL, fmt.Sprintf("plist/%v.plist", row.ID))
 	}
 
+	metaDataFilter := []string{}
+	for _, v := range strings.Split(os.Getenv("META_DATA_FILTER"), ",") {
+		key := strings.TrimSpace(v)
+		if len(key) > 0 {
+			metaDataFilter = append(metaDataFilter, key)
+		}
+	}
+
 	return &Item{
 		// from AppInfo
 		ID:         row.ID,
@@ -331,6 +341,9 @@ func (s *service) itemInfo(row *AppInfo, publicURL string) *Item {
 		Version:    row.Version,
 		Channel:    row.Channel,
 		Type:       row.Type,
+
+		MetaData:       row.MetaData,
+		MetaDataFilter: metaDataFilter,
 
 		Pkg:     s.storagerPublicURL(publicURL, row.PackageStorageName()),
 		Plist:   plist,

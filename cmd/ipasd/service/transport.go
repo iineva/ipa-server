@@ -73,30 +73,33 @@ func MakeAddEndpoint(srv Service) endpoint.Endpoint {
 			return nil, fmt.Errorf("do not support %s file", path.Ext(p.file.FileName()))
 		}
 
-		if err := srv.Add(buf, t); err != nil {
+		app, err := srv.Add(buf, t)
+		if err != nil {
+			return nil, err
+		}
+		return map[string]interface{}{"msg": "ok", "data": app}, nil
+	}
+}
+
+func MakeDeleteEndpoint(srv Service, enabledDelete bool) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		if !enabledDelete {
+			return nil, errors.New("no permission to delete")
+		}
+
+		p := request.(delParam)
+		err := srv.Delete(p.id)
+		if err != nil {
 			return nil, err
 		}
 		return map[string]string{"msg": "ok"}, nil
 	}
 }
 
-func MakeDeleteEndpoint(srv Service, enabledDelete bool) endpoint.Endpoint {
+func MakeGetDeleteEndpoint(srv Service, enabledDelete bool) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		p := request.(delParam)
-		if p.get {
-			// check is delete enabled
-			return map[string]interface{}{"delete": enabledDelete}, nil
-		}
-
-		if !enabledDelete {
-			return nil, errors.New("no permission to delete")
-		}
-
-		err := srv.Delete(p.id)
-		if err != nil {
-			return nil, err
-		}
-		return map[string]string{"msg": "ok"}, nil
+		// check is delete enabled
+		return map[string]interface{}{"delete": enabledDelete}, nil
 	}
 }
 

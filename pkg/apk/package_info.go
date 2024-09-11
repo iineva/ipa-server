@@ -39,6 +39,22 @@ func (a *APK) Channel() string {
 	return ""
 }
 
+func (a *APK) MetaData() map[string]interface{} {
+	d := map[string]interface{}{}
+	for _, r := range a.manifest.App.MetaData {
+		name, err := r.Name.String()
+		if err != nil {
+			continue
+		}
+		value, err := r.Value.String()
+		if err != nil {
+			continue
+		}
+		d[name] = value
+	}
+	return d
+}
+
 func (a *APK) Icon() image.Image {
 	return a.icon
 }

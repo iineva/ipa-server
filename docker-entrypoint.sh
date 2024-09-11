@@ -27,4 +27,12 @@ if [ -n "$META_PATH" ];then
     ipasd_args=$ipasd_args"-meta-path $META_PATH "
 fi
 
+if [ -n "$LOGIN_USER" ];then
+    ipasd_args=$ipasd_args"-user $LOGIN_USER "
+fi
+
+if [ -n "$LOGIN_PASS" ];then
+    ipasd_args=$ipasd_args"-user $LOGIN_PASS "
+fi
+
 /app/ipasd $ipasd_args

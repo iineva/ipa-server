@@ -73,6 +73,11 @@ services:
       - META_PATH=appList.json
       # 是否开启删除APP功能, true/false
       - DELETE_ENABLED="false"
+      # meta data 过滤显示, string list, 使用逗号分隔
+      - META_DATA_FILTER="key1,key2"
+      # 如果设置了，使用此用户名密码来上传和删除App
+      - LOGIN_USER=
+      - LOGIN_PASS=
     volumes:
       - "/docker/data/ipa-server:/app/upload"
   caddy:

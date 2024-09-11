@@ -22,7 +22,8 @@ type AppInfo struct {
 	Size       int64       `json:"size"`
 	NoneIcon   bool        `json:"noneIcon"`
 	Type       AppInfoType `json:"type"`
-	// Metadata   plist.Plist `json:"metadata"` // metadata from Info.plist
+	// Metadata
+	MetaData map[string]interface{} `json:"metaData"`
 }
 
 const (
@@ -34,9 +35,9 @@ const (
 func (t AppInfoType) StorageName() string {
 	switch t {
 	case AppInfoTypeIpa:
-		return "ipa.ipa"
+		return ".ipa"
 	case AppInfoTypeApk:
-		return "apk.apk"
+		return ".apk"
 	default:
 		return "unknown"
 	}
@@ -66,6 +67,7 @@ type Package interface {
 	Identifier() string
 	Build() string
 	Channel() string
+	MetaData() map[string]interface{}
 	Icon() image.Image
 	Size() int64
 }
@@ -78,6 +80,7 @@ func NewAppInfo(i Package, t AppInfoType) *AppInfo {
 		Identifier: i.Identifier(),
 		Build:      i.Build(),
 		Channel:    i.Channel(),
+		MetaData:   i.MetaData(),
 		Date:       time.Now(),
 		Size:       i.Size(),
 		Type:       t,
@@ -89,9 +92,9 @@ func (a *AppInfo) IconStorageName() string {
 	if a.NoneIcon {
 		return ""
 	}
-	return filepath.Join(a.Identifier, a.ID, "icon.png")
+	return filepath.Join(a.Identifier, a.ID+".png")
 }
 
 func (a *AppInfo) PackageStorageName() string {
-	return filepath.Join(a.Identifier, a.ID, a.Type.StorageName())
+	return filepath.Join(a.Identifier, a.ID+a.Type.StorageName())
 }

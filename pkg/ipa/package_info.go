@@ -32,6 +32,10 @@ func (i *IPA) Channel() string {
 	return i.info.Channel
 }
 
+func (i *IPA) MetaData() map[string]interface{} {
+	return i.info.ISMetaData
+}
+
 func (i *IPA) Icon() image.Image {
 	return i.icon
 }

@@ -75,6 +75,11 @@ services:
       - META_PATH=appList.json
       # delete app enabled, true/false
       - DELETE_ENABLED="false"
+      # meta data filter, string list, comma separated
+      - META_DATA_FILTER="key1,key2"
+      # If set, login user for upload and delete Apps.
+      - LOGIN_USER=
+      - LOGIN_PASS=
     volumes:
       - "/docker/data/ipa-server:/app/upload"
   caddy:

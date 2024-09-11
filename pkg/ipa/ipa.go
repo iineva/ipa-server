@@ -51,6 +51,8 @@ type InfoPlist struct {
 	CFBundleVersion            string        `json:"CFBundleVersion,omitempty"`
 	// not standard
 	Channel string `json:"channel"`
+	// not standard
+	ISMetaData map[string]interface{} `json:"ISMetaData,omitempty"`
 }
 
 func Parse(readerAt io.ReaderAt, size int64) (*IPA, error) {
