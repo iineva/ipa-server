@@ -32,7 +32,7 @@ if [ -n "$LOGIN_USER" ];then
 fi
 
 if [ -n "$LOGIN_PASS" ];then
-    ipasd_args=$ipasd_args"-user $LOGIN_PASS "
+    ipasd_args=$ipasd_args"-pass $LOGIN_PASS "
 fi
 
 /app/ipasd $ipasd_args
