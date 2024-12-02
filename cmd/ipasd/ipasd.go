@@ -13,9 +13,11 @@ import (
 
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/iineva/ipa-server/cmd/ipasd/service"
+	"github.com/iineva/ipa-server/pkg/common"
 	"github.com/iineva/ipa-server/pkg/httpfs"
 	"github.com/iineva/ipa-server/pkg/storager"
 	"github.com/iineva/ipa-server/pkg/uuid"
+	"github.com/iineva/ipa-server/pkg/websocketfile"
 	"github.com/iineva/ipa-server/public"
 )
 
@@ -136,6 +138,42 @@ func main() {
 	serve.Handle("/api/delete", deleteHandler)
 	serve.Handle("/api/delete/get", deleteGetHandler)
 	serve.Handle("/plist/", plistHandler)
+	// upload file over Websocket
+	serve.Handle("/api/upload/ws", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		f, err := websocketfile.NewWebsocketFile(w, r)
+		if err != nil {
+			logger.Log("msg", fmt.Sprintf("err: %v", err))
+			return
+		}
+
+		size, err := f.Size()
+		if err != nil {
+			logger.Log("msg", fmt.Sprintf("err: %v", err))
+			return
+		}
+
+		name, err := f.Name()
+		if err != nil {
+			logger.Log("msg", fmt.Sprintf("err: %v", err))
+			return
+		}
+		t := service.FileType(name)
+
+		logger.Log("name:", name, " size:", size)
+
+		info, err := srv.Add(f, size, t)
+		if err != nil {
+			logger.Log("msg", fmt.Sprintf("err: %v", err))
+			return
+		}
+
+		err = f.Done(common.ToMap(info))
+		if err != nil {
+			logger.Log("msg", fmt.Sprintf("err: %v", err))
+			return
+		}
+
+	}))
 
 	// static files
 	uploadFS := afero.NewBasePathFs(afero.NewOsFs(), *storageDir)

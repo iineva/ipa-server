@@ -69,14 +69,13 @@ type Service interface {
 	Find(id string, publicURL string) (*Item, error)
 	History(id string, publicURL string) ([]*Item, error)
 	Delete(id string) error
-	Add(r Reader, t AppInfoType) (*AppInfo, error)
+	Add(r Reader, size int64, t AppInfoType) (*AppInfo, error)
 	Plist(id, publicURL string) ([]byte, error)
 }
 
 type Reader interface {
 	io.Reader
 	io.ReaderAt
-	Size() int64
 }
 
 type service struct {
@@ -176,9 +175,9 @@ func (s *service) Delete(id string) error {
 	return nil
 }
 
-func (s *service) Add(r Reader, t AppInfoType) (*AppInfo, error) {
+func (s *service) Add(r Reader, size int64, t AppInfoType) (*AppInfo, error) {
 
-	app, err := s.addPackage(r, t)
+	app, err := s.addPackage(r, size, t)
 	if err != nil {
 		return nil, err
 	}
@@ -191,7 +190,7 @@ func (s *service) Add(r Reader, t AppInfoType) (*AppInfo, error) {
 	return app, s.saveMetadata()
 }
 
-func (s *service) addPackage(r Reader, t AppInfoType) (*AppInfo, error) {
+func (s *service) addPackage(r Reader, size int64, t AppInfoType) (*AppInfo, error) {
 	// save ipa file to temp
 	pkgTempFileName := filepath.Join(tempDir, uuid.NewString())
 	if err := s.store.Save(pkgTempFileName, r); err != nil {
@@ -203,9 +202,9 @@ func (s *service) addPackage(r Reader, t AppInfoType) (*AppInfo, error) {
 	var err error
 	switch t {
 	case AppInfoTypeIpa:
-		pkg, err = ipa.Parse(r, r.Size())
+		pkg, err = ipa.Parse(r, size)
 	case AppInfoTypeApk:
-		pkg, err = apk.Parse(r, r.Size())
+		pkg, err = apk.Parse(r, size)
 	}
 	if err != nil {
 		return nil, err

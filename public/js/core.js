@@ -31,6 +31,110 @@
             });
         }
 
+        function newUpload(file, _onProgress) {
+            var onProgress = function(m) {
+                _onProgress && _onProgress({
+                    loaded: m.loaded,
+                    total: m.total,
+                })
+            }
+            return new Promise((res, rej) => {
+                const u = location.origin
+                .replace("https://", "wss://")
+                .replace("http://", "ws://");
+              var ws = new WebSocket(u + "/api/upload/ws");
+              var CommandTypeReadAt = 1;
+              var CommandTypeSize = 2;
+              var CommandTypeName = 3;
+              var CommandTypeDone = 4;
+
+              function sendRequest(command, requestId, param) {
+                var obj = {
+                    command: command,
+                    requestId: requestId,
+                    param: param, 
+                };
+                ws.send(JSON.stringify(obj));
+              }
+
+              ws.onopen = function () {
+                // console.log("ws opened");
+              };
+      
+              ws.onmessage = function (evt) {
+                var received_msg = evt.data;
+                if (!received_msg) return;
+                var msg = null;
+                try {
+                    msg = JSON.parse(received_msg);
+                } catch (err) {
+                    rej(err)
+                    console.error(err)
+                }
+                if (!msg) return;
+                // console.log("onmessage", msg);
+                switch (msg.command) {
+                  case CommandTypeReadAt: {
+                    var start = msg.param.offset;
+                    var end = Math.min(msg.param.offset + msg.param.length, file.size);
+                    if (end - start <= 0) {
+                        sendRequest(msg.command, msg.requestId, {data: ""});
+                        onProgress({
+                          loaded: end,
+                          total: file.size,
+                        });
+                        return;
+                    }
+                    var reader = new FileReader();
+                    reader.onload = function() {
+                      var text = reader.result;
+                      var data = text.substr(text.indexOf(',') + 1);
+                      sendRequest(msg.command, msg.requestId, {data: data});
+                      onProgress({
+                        loaded: end,
+                        total: file.size,
+                        end: end,
+                      });
+                    };
+                    reader.readAsDataURL(file.slice(start, end));
+                    break
+                  }
+                  case CommandTypeSize: {
+                    sendRequest(msg.command, msg.requestId, {
+                        size: file.size,
+                    });
+                    break
+                  }
+                  case CommandTypeName: {
+                    sendRequest(msg.command, msg.requestId, {
+                        name: file.name,
+                    })
+                    break
+                  }
+                  case CommandTypeDone: {
+                    onProgress({
+                        loaded: file.size,
+                        total: file.size,
+                    })
+                    res(msg.param)
+                    break
+                  }
+                }
+              };
+
+              ws.onerror = function() {
+                console.error("onerror");
+                rej(err)
+              }
+      
+              ws.onclose = function () {
+                // websocket closed
+                // console.log("onclose");
+              };
+    
+            })
+        }
+
         function getApiUrl(path) {
             return path
         }
@@ -177,6 +281,7 @@
     sizeStr: sizeStr,
     createItem: createItem,
     getApiUrl: getApiUrl,
+    newUpload: newUpload,
   }
 
 })(window)

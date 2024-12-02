@@ -1,115 +1,114 @@
 <html>
-
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
-  <title>IPA Server</title>
-  <script type="text/javascript" src="/js/layzr.min.js"></script>
-  <script type="text/javascript" src="/js/dayjs.min.js"></script>
-  <script type="text/javascript" src="/js/dayjs.zh-cn.min.js"></script>
-  <script type="text/javascript" src="/js/dayjs.relativeTime.min.js"></script>
-  <script type="text/javascript" src="/js/core.js"></script>
-  <link rel="stylesheet" type="text/css" href="css/core.css">
-  <style type="text/css">
-    * {
-      padding: 0;
-      margin: 0;
-      font-size: 1em;
-      font-family: sans-serif;
-    }
-
-    /* form  */
-    form {
-       display: flex;
-    }
-
-    form .file {
-      display: none;
-    }
-
-    form .add-btn {
-      flex: 1;
-      border-bottom: .5px solid #ccc;
-      padding: .75em;
-      font-size: 1.2em;
-      color: #1890ff;
-      text-align: center;
-    }
-  </style>
-</head>
-
-<body>
-  <form>
-    <input class="file" type="file" name="file" value="" accept=".ipa,.apk" />
-    <div class="add-btn">Add</div>
-  </form>
-  <div id="list"></div>
-  <script type="text/javascript">
-
-    function updateAddProgress(progress) {
-      const add = document.querySelector(".add-btn")
-      if (progress === 0) {
-        add.innerHTML = IPA.langString('Add')
-      } else if (progress === 1) {
-        add.innerHTML = IPA.langString('Upload Done!')
-        setTimeout(() => {
-          add.innerHTML = IPA.langString('Add')
-        }, 2000)
-      } else {
-        add.innerHTML = `${(progress * 100).toFixed(2)}%`
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"
+    />
+    <title>IPA Server</title>
+    <script type="text/javascript" src="/js/layzr.min.js"></script>
+    <script type="text/javascript" src="/js/dayjs.min.js"></script>
+    <script type="text/javascript" src="/js/dayjs.zh-cn.min.js"></script>
+    <script type="text/javascript" src="/js/dayjs.relativeTime.min.js"></script>
+    <script type="text/javascript" src="/js/core.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/core.css" />
+    <style type="text/css">
+      * {
+        padding: 0;
+        margin: 0;
+        font-size: 1em;
+        font-family: sans-serif;
       }
-    }
 
-    let uploading = false
-    window.onbeforeunload = () => uploading ? true : undefined
-    document.querySelector(".file").addEventListener("change", e => {
-      if (e.target.files.length === 0) {
-        return;
+      /* form  */
+      form {
+        display: flex;
       }
-      const data = new FormData()
-      data.append('file', e.target.files[0])
-      uploading = true
-      IPA.fetch(IPA.getApiUrl('/api/upload'), {
-        method: 'POST',
-        body: data,
-      }, progress => {
-        updateAddProgress(progress.loaded / progress.total)
-      }).then(json => {
-        e.target.value = ''
-        uploading = false
-        if (json.err) {
-          alert(json.err)
-          return
+
+      form .file {
+        display: none;
+      }
+
+      form .add-btn {
+        flex: 1;
+        border-bottom: 0.5px solid #ccc;
+        padding: 0.75em;
+        font-size: 1.2em;
+        color: #1890ff;
+        text-align: center;
+      }
+    </style>
+  </head>
+
+  <body>
+    <form>
+      <input class="file" type="file" name="file" value="" accept=".ipa,.apk" />
+      <div class="add-btn">Add</div>
+    </form>
+    <div id="list"></div>
+    <script type="text/javascript">
+      function updateAddProgress(progress) {
+        const add = document.querySelector(".add-btn");
+        if (progress === 0) {
+          add.innerHTML = IPA.langString("Add");
+        } else if (progress === 1) {
+          add.innerHTML = IPA.langString("Upload Done!");
+          setTimeout(() => {
+            add.innerHTML = IPA.langString("Add");
+          }, 2000);
+        } else {
+          add.innerHTML = `${(progress * 100).toFixed(2)}%`;
         }
-        loadList()
-      }).catch(err => {
-        uploading = false
-        updateAddProgress(0)
-      })
-    })
-    document.querySelector(".add-btn").addEventListener("click", e => {
-      uploading || document.querySelector(".file").click()
-    })
+      }
 
-    // init lazy load
-    const instance = Layzr({
-      threshold: 20
-    })
+      let uploading = false;
+      window.onbeforeunload = () => (uploading ? true : undefined);
+      document.querySelector(".file").addEventListener("change", (e) => {
+        if (e.target.files.length === 0) {
+          return;
+        }
+        uploading = true;
 
-    function loadList() {
-      IPA.fetch(IPA.getApiUrl('/api/list')).then(list => {
-        document.querySelector('#list').innerHTML = list.map(row => IPA.createItem(row)).join('')
+        IPA.newUpload(e.target.files[0], (progress) => {
+          updateAddProgress(progress.loaded / progress.total);
+        })
+          .then((json) => {
+            e.target.value = "";
+            uploading = false;
+            if (json.err) {
+              alert(json.err);
+              return;
+            }
+            loadList();
+          })
+          .catch((err) => {
+            uploading = false;
+            updateAddProgress(0);
+          });
+      });
+      document.querySelector(".add-btn").addEventListener("click", (e) => {
+        uploading || document.querySelector(".file").click();
+      });
 
-        // start lazy load
-        instance.update().check().handlers(true)
-      })
-    }
+      // init lazy load
+      const instance = Layzr({
+        threshold: 20,
+      });
 
-    window.addEventListener('load', loadList)
-    document.querySelector('.add-btn').innerHTML = IPA.langString('Add')
+      function loadList() {
+        IPA.fetch(IPA.getApiUrl("/api/list")).then((list) => {
+          document.querySelector("#list").innerHTML = list
+            .map((row) => IPA.createItem(row))
+            .join("");
 
-  </script>
-</body>
+          // start lazy load
+          instance.update().check().handlers(true);
+        });
+      }
 
+      window.addEventListener("load", loadList);
+      document.querySelector(".add-btn").innerHTML = IPA.langString("Add");
+    </script>
+  </body>
 </html>
