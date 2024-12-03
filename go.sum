@@ -120,6 +120,7 @@ github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1/go.mod h1:wJfORR
 github.com/gorilla/context v1.1.1/go.mod h1:kBGZzfjB9CEq2AlWe17Uuf7NDRt0dE0s8S51q0aT7Yg=
 github.com/gorilla/mux v1.6.2/go.mod h1:1lud6UwP+6orDFRuTfBEV8e9/aOM/c4fVVCaMa2zaAs=
 github.com/gorilla/mux v1.7.3/go.mod h1:1lud6UwP+6orDFRuTfBEV8e9/aOM/c4fVVCaMa2zaAs=
+github.com/gorilla/websocket v0.0.0-20170926233335-4201258b820c h1:Lh2aW+HnU2Nbe1gqD9SOJLJxW1jBMmQOktN2acDyJk8=
 github.com/gorilla/websocket v0.0.0-20170926233335-4201258b820c/go.mod h1:E7qHFY5m1UJ88s3WnNqhKjPHQ0heANvMoAMk2YaljkQ=
 github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4/go.mod h1:FiyG127CGDf3tlThmgyCl78X/SZQqEOJBCDaAfeWzPs=
 github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0/go.mod h1:8NvIoxWQoOIhqOTXgfV/d3M/q6VIi02HzZEHgUlZvzk=
@@ -146,8 +147,6 @@ github.com/hashicorp/memberlist v0.1.3/go.mod h1:ajVTdAv/9Im8oMAAj5G31PhhMCZJV2p
 github.com/hashicorp/serf v0.8.2/go.mod h1:6hOLApaqBFA1NXqRQAsxw9QxuDEvNxSQRwA/JwenrHc=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/hudl/fargo v1.3.0/go.mod h1:y3CKSmjA+wD2gak7sUSXTAoopbhU08POFhmITJgmKTg=
-github.com/iineva/CgbiPngFix v0.0.0-20210523041253-b8869b346914 h1:l/3SkoXjUmXjj90Ho9FHksi6OVJDIOGU0Ow2KSZnNjE=
-github.com/iineva/CgbiPngFix v0.0.0-20210523041253-b8869b346914/go.mod h1:caygohjd8B7TXErEL2NYMdJNLO9jIddQIALUKcoszZo=
 github.com/iineva/bom v0.0.0-20210604102127-81d8bcf0765e h1:LRrJgM6YtcVTzuDviS+xIglYVe/AbpqGCHD2bDtFI8Y=
 github.com/iineva/bom v0.0.0-20210604102127-81d8bcf0765e/go.mod h1:O7ivqgPZeHUc3Dk9ZA+bqH/+7Qr/2lo1pogmk78RaQQ=
 github.com/iineva/go-lzfse v1.1.13-0.20210604101847-2a555776c20a h1:c8iYO/eYhs1ec6n4oLzl7x0qt6o2ncMo5Tu4RqaTjNY=
@@ -231,6 +230,8 @@ github.com/pkg/profile v1.2.1/go.mod h1:hJw3o1OdXxsrSjjVksARp5W95eeEaEfptyVZyv6J
 github.com/pkg/sftp v1.10.1/go.mod h1:lYOWFsE0bwd1+KfKJaKeuokY15vzFx25BLbzYYoAxZI=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
+github.com/poolqa/CgbiPngFix v0.0.0-20211024081647-8ad4fb5c23e4 h1:n3IkiWQgZS8Ref8BX/NWpYe7VClpQJ8pbzUSBZOqoKs=
+github.com/poolqa/CgbiPngFix v0.0.0-20211024081647-8ad4fb5c23e4/go.mod h1:DG0Kw4br1oA1IRv7O/QNp8fzh+/YBgknQCLnMeioG1U=
 github.com/posener/complete v1.1.1/go.mod h1:em0nMJCgc9GFtwrmVmEMR/ZL6WyhyjMBndrE9hABlRI=
 github.com/prometheus/client_golang v0.9.1/go.mod h1:7SWBe2y4D6OKWSNQJUaRYU/AaXPKyh/dDVn+NZz0KFw=
 github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829/go.mod h1:p2iRAGwDERtqlqzRXnrOVns+ignqQo//hLXqYxZYVNs=

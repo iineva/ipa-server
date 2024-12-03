@@ -1,6 +1,7 @@
 package storager
 
 import (
+	"bufio"
 	"io"
 	"path/filepath"
 
@@ -14,6 +15,7 @@ type oferoStorager struct {
 
 const (
 	oferoStoragerDirPerm = 0755
+	WRITER_BUFFER_SIZE   = 1024 * 1024 * 2 // 1M
 )
 
 var _ Storager = (*oferoStorager)(nil)
@@ -36,10 +38,25 @@ func (f *oferoStorager) Save(name string, reader io.Reader) error {
 		return err
 	}
 	fi, err := f.fs.Create(name)
+	defer func() {
+		_ = fi.Close()
+	}()
 	if err != nil {
 		return err
 	}
-	_, err = io.Copy(fi, reader)
+
+	// write with buffer
+	w := bufio.NewWriterSize(fi, WRITER_BUFFER_SIZE)
+	_, err = io.Copy(w, reader)
+	if err != nil {
+		return err
+	}
+
+	err = w.Flush()
+	if err != nil {
+		return err
+	}
+
 	return err
 }
 
