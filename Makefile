@@ -1,4 +1,4 @@
-VERSION := 2.5
+VERSION := 2.5.1
 DOCKER_IMAGE := ineva/ipa-server
 DOCKER_TARGET := $(DOCKER_IMAGE):$(VERSION)
 
