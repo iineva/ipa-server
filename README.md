@@ -6,7 +6,7 @@ Upload and install Apple `.ipa` and Android `.apk` in web.
 
 # Demo
 
-<https://ipasd.herokuapp.com/>
+<https://ipa-server-git-v2-ineva.vercel.app/>
 
 ## Key features
 
