@@ -73,7 +73,7 @@ func MakeAddEndpoint(srv Service) endpoint.Endpoint {
 			return nil, fmt.Errorf("do not support %s file", path.Ext(p.file.FileName()))
 		}
 
-		app, err := srv.Add(buf, buf.Size(), t)
+		app, err := srv.Add(buf, p.file.Size(), t)
 		if err != nil {
 			return nil, err
 		}
