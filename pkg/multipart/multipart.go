@@ -7,6 +7,7 @@ import (
 	"mime"
 	"mime/multipart"
 	"net/http"
+	"strconv"
 )
 
 type MultipartForm struct {
@@ -17,7 +18,7 @@ type FormFile struct {
 	part     *multipart.Part
 	name     string // form name
 	filename string // file name
-	// size     int64  // readed size
+	size     int64  // readed size
 }
 
 var _ io.Reader = (*FormFile)(nil)
@@ -43,10 +44,17 @@ func (m *MultipartForm) GetFormFile(targetName string) (*FormFile, error) {
 	}
 	filename := p.FileName()
 
+	s := m.r.Header.Get("Content-Length")
+	size, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
 	return &FormFile{
 		part:     p,
 		name:     name,
 		filename: filename,
+		size:     size,
 	}, nil
 }
 
@@ -78,4 +86,8 @@ func (f *FormFile) FileName() string {
 
 func (f *FormFile) Name() string {
 	return f.name
+}
+
+func (f *FormFile) Size() int64 {
+	return f.size
 }
