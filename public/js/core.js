@@ -122,9 +122,9 @@
                 }
               };
 
-              ws.onerror = function() {
+              ws.onerror = function(e) {
                 console.error("onerror");
-                rej(err)
+                rej(e)
               }
       
               ws.onclose = function () {
