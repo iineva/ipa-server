@@ -12,7 +12,7 @@ require (
 	github.com/go-kit/kit v0.10.0
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/gorilla/websocket v1.4.1
-	github.com/iineva/bom v0.0.0-20210604102127-81d8bcf0765e
+	github.com/iineva/bom v0.0.0-20250226145112-6ae267192ee0
 	github.com/lithammer/shortuuid v3.0.0+incompatible
 	github.com/poolqa/CgbiPngFix v0.0.0-20211024081647-8ad4fb5c23e4
 	github.com/qiniu/go-sdk/v7 v7.9.5
