@@ -1,191 +1,244 @@
 <html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"
+    />
+    <script type="text/javascript" src="/js/layzr.min.js"></script>
+    <script type="text/javascript" src="/js/dayjs.min.js"></script>
+    <script type="text/javascript" src="/js/dayjs.zh-cn.min.js"></script>
+    <script type="text/javascript" src="/js/dayjs.relativeTime.min.js"></script>
+    <script type="text/javascript" src="/js/qrcode.min.js"></script>
+    <script type="text/javascript" src="/js/core.js"></script>
+    <link rel="stylesheet" type="text/css" href="/css/core.css" />
+    <title>IPA Server</title>
+    <style type="text/css">
+      * {
+        padding: 0;
+        margin: 0;
+        font-size: 1em;
+        font-family: sans-serif;
+      }
 
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
-  <script type="text/javascript" src="/js/layzr.min.js"></script>
-  <script type="text/javascript" src="/js/dayjs.min.js"></script>
-  <script type="text/javascript" src="/js/dayjs.zh-cn.min.js"></script>
-  <script type="text/javascript" src="/js/dayjs.relativeTime.min.js"></script>
-  <script type="text/javascript" src="/js/qrcode.min.js"></script>
-  <script type="text/javascript" src="/js/core.js"></script>
-  <link rel="stylesheet" type="text/css" href="/css/core.css">
-  <title>IPA Server</title>
-  <style type="text/css">
-    * {
-      padding: 0;
-      margin: 0;
-      font-size: 1em;
-      font-family: sans-serif;
-    }
+      #info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: #a9b1b3;
+        font-size: 1em;
+        padding: 4em 0 0 0;
+        font-weight: 100;
+      }
 
-    #info {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      color: #A9B1B3;
-      font-size: 1em;
-      padding: 4em 0 0 0;
-      font-weight: 100;
-    }
+      #info .name {
+        color: #505556;
+        font-size: 1.6em;
+        font-weight: 500;
+        margin: 1em 0;
+      }
 
-    #info .name {
-      color: #505556;
-      font-size: 1.6em;
-      font-weight: 500;
-      margin: 1em 0;
-    }
+      #info img.icon {
+        width: 7.5em;
+        height: 7.5em;
+        border-radius: 20%;
+        box-shadow: 0 0 4px #eee;
+      }
 
-    #info img.icon {
-      width: 7.5em;
-      height: 7.5em;
-      border-radius: 20%;
-      box-shadow: 0 0 4px #eee;
-    }
+      #info .qrcode img {
+        margin: 1em;
+        width: 10rem;
+      }
 
-    #info .qrcode img {
-      margin: 1em;
-      width: 10rem;
-    }
+      #info .install {
+        background: #1890ff;
+        border-radius: 5em;
+        padding: 10px 5em;
+        font-size: 1em;
+        font-weight: 100;
+        color: #fff;
+        margin: 2em 0;
+      }
 
-    #info .install {
-      background: #1890ff;
-      border-radius: 5em;
-      padding: 10px 5em;
-      font-size: 1em;
-      font-weight: 100;
-      color: #fff;
-      margin: 2em 0;
-    }
+      #info .delete {
+        text-decoration: underline;
+      }
 
-    #info .delete {
-      text-decoration: underline;
-    }
+      #info .delete:hover {
+        cursor: pointer;
+      }
 
-    #info .delete:hover {
-      cursor: pointer;
-    }
+      #info .date {
+        margin-top: 4px;
+        display: flex;
+      }
 
-    #info .date {
-      margin-top: 4px;
-      display: flex;
-    }
+      #info .date .title {
+        margin: 0 4px;
+      }
 
-    #info .date .title {
-      margin: 0 4px;
-    }
+      #info .type {
+        width: 16px;
+        height: auto;
+      }
 
-    #info .type {
-      width: 16px;
-      height: auto;
-    }
+      #info .meta-content {
+        margin: 0 18px;
+        word-break: break-all;
+        font-size: 14px;
+        line-height: 18px;
+      }
+    </style>
+  </head>
 
-    #info .meta-content {
-      margin: 0 18px;
-      word-break: break-all;
-      font-size: 14px;
-      line-height: 18px;
-    }
-  </style>
-</head>
+  <body>
+    <div id="info"></div>
+    <div id="list"></div>
+    <footer>
+      <a href="https://github.com/iineva/ipa-server" target="_blank">
+        <img src="https://img.shields.io/github/stars/iineva/ipa-server" />
+      </a>
+      <span
+        >Powered by
+        <a href="https://github.com/iineva/ipa-server" target="_blank"
+          >iineva/ipa-server</a
+        ></span
+      >
+    </footer>
 
-<body>
-  <div id="info"></div>
-  <div id="list"></div>
-  <script type="text/javascript">
-
-    // init lazy load
-    const instance = Layzr({
-      threshold: 20
-    })
-
-    function query() {
-      const obj = {}
-      window.location.search.split('?')[1].split('&').map(row => {
-        const v = row.split('=')
-        if (v.length === 2) { obj[v[0]] = v[1] }
-      })
-      return obj
-    }
-
-    function createQRCode() {
-      // create qrcode
-      var qrcode = new QRCode(document.querySelector("#info .qrcode"), {
-        text: window.location.href,
-        width: 256,
-        height: 256,
-        colorDark: "#000000",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
+    <script type="text/javascript">
+      // init lazy load
+      const instance = Layzr({
+        threshold: 20,
       });
-    }
 
-    function loadInfo(del) {
-      IPA.fetch(`/api/info/${query().id}?v=${parseInt(new Date().getTime() / 1000)}`).then(row => {
-        const filter = (row.metaDataFilter || []).map(r => `${r}`.toLowerCase())
-        const meta = Object.keys(row.metaData || {})
-          .map(k => ({ name: k, value: (row.metaData || {})[k] }))
-          .filter(r => r.value && (filter.length === 0 || filter.indexOf(r.name.toLocaleLowerCase()) !== -1))
-        document.querySelector('#info').innerHTML = `
+      function query() {
+        const obj = {};
+        window.location.search
+          .split("?")[1]
+          .split("&")
+          .map((row) => {
+            const v = row.split("=");
+            if (v.length === 2) {
+              obj[v[0]] = v[1];
+            }
+          });
+        return obj;
+      }
+
+      function createQRCode() {
+        // create qrcode
+        var qrcode = new QRCode(document.querySelector("#info .qrcode"), {
+          text: window.location.href,
+          width: 256,
+          height: 256,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.H,
+        });
+      }
+
+      function loadInfo(del) {
+        IPA.fetch(
+          `/api/info/${query().id}?v=${parseInt(new Date().getTime() / 1000)}`
+        ).then((row) => {
+          const filter = (row.metaDataFilter || []).map((r) =>
+            `${r}`.toLowerCase()
+          );
+          const meta = Object.keys(row.metaData || {})
+            .map((k) => ({ name: k, value: (row.metaData || {})[k] }))
+            .filter(
+              (r) =>
+                r.value &&
+                (filter.length === 0 ||
+                  filter.indexOf(r.name.toLocaleLowerCase()) !== -1)
+            );
+          document.querySelector("#info").innerHTML = `
           <img class="icon" src="${row.webIcon}" alt="">
           <div class="name">${row.name}</div>
-          <div>${row.channel && IPA.langString('Channel') + ': ' + row.channel || ''}</div>
-          <div>${IPA.langString('Beta')} - ${row.version}(Build ${row.build}) - ${IPA.sizeStr(row.size)}</div>
+          <div>${
+            (row.channel && IPA.langString("Channel") + ": " + row.channel) ||
+            ""
+          }</div>
+          <div>${IPA.langString("Beta")} - ${row.version}(Build ${
+            row.build
+          }) - ${IPA.sizeStr(row.size)}</div>
           <div class='date'>
-            <img class="type" src="/img/${row.type === 0 ? 'ios' : 'android'}.svg"></img>
-            <span class="title">${IPA.langString('Upload Date: ')}${dayjs(row.date).fromNow()}</span>
-            <span onclick="onClickDelete('${row.id}')" ${del ? "" : "hidden"} class="delete">${IPA.langString('Delete')}</span>
+            <img class="type" src="/img/${
+              row.type === 0 ? "ios" : "android"
+            }.svg"></img>
+            <span class="title">${IPA.langString("Upload Date: ")}${dayjs(
+            row.date
+          ).fromNow()}</span>
+            <span onclick="onClickDelete('${row.id}')" ${
+            del ? "" : "hidden"
+          } class="delete">${IPA.langString("Delete")}</span>
           </div>
           <div class="qrcode"></div>
-          <div onclick="${onInstallClick(row)}" class="install">${IPA.langString('Download and Install')}</div>
-          <div class="meta"><div class="meta-content">${meta.map(r => `<li>${r.name}: ${r.value}</li>`).join('')}</div></div>
-        `
-        document.querySelector('#list').innerHTML = row.history.map(row => IPA.createItem(row)).join('')
+          <div onclick="${onInstallClick(
+            row
+          )}" class="install">${IPA.langString("Download and Install")}</div>
+          <div class="meta"><div class="meta-content">${meta
+            .map((r) => `<li>${r.name}: ${r.value}</li>`)
+            .join("")}</div></div>
+        `;
+          document.querySelector("#list").innerHTML = row.history
+            .map((row) => IPA.createItem(row))
+            .join("");
 
-        createQRCode();
+          createQRCode();
 
-        // start lazy load
-        instance.update().check().handlers(true)
-      })
-    }
-    function onWindowsLoad() {
-      IPA.fetch(`/api/delete/get?v=${parseInt(new Date().getTime() / 1000)}`).then(d => {
-        loadInfo(d.delete)
-      }).catch(e => {
-        loadInfo(false)
-      })
-    }
-
-    function onClickDelete(id) {
-      if (!confirm(IPA.langString('Confirm to Delete?'))) {
-        return
+          // start lazy load
+          instance.update().check().handlers(true);
+        });
       }
-      IPA.fetch(IPA.getApiUrl('/api/delete'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id: id,
-        }),
-      }).then(json => {
-        if (json.err) {
-          alert(json.err)
-          return
-        }
+      function onWindowsLoad() {
+        IPA.fetch(`/api/delete/get?v=${parseInt(new Date().getTime() / 1000)}`)
+          .then((d) => {
+            loadInfo(d.delete);
+          })
+          .catch((e) => {
+            loadInfo(false);
+          });
+      }
 
-        if (confirm(`${IPA.langString('Delete Success!')}\n${IPA.langString('Back to home?')}`)) {
-          window.location.href = '/'
-        } else {
-          onWindowsLoad()
+      function onClickDelete(id) {
+        if (!confirm(IPA.langString("Confirm to Delete?"))) {
+          return;
         }
-      }).catch(err => {
-        console.error(err)
-      })
-    }
-    window.addEventListener('load', onWindowsLoad)
-  </script>
-</body>
+        IPA.fetch(IPA.getApiUrl("/api/delete"), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: id,
+          }),
+        })
+          .then((json) => {
+            if (json.err) {
+              alert(json.err);
+              return;
+            }
 
+            if (
+              confirm(
+                `${IPA.langString("Delete Success!")}\n${IPA.langString(
+                  "Back to home?"
+                )}`
+              )
+            ) {
+              window.location.href = "/";
+            } else {
+              onWindowsLoad();
+            }
+          })
+          .catch((err) => {
+            console.error(err);
+          });
+      }
+      window.addEventListener("load", onWindowsLoad);
+    </script>
+  </body>
 </html>
