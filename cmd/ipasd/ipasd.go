@@ -14,6 +14,7 @@ import (
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/iineva/ipa-server/cmd/ipasd/service"
 	"github.com/iineva/ipa-server/pkg/common"
+	"github.com/iineva/ipa-server/pkg/http_basic_auth"
 	"github.com/iineva/ipa-server/pkg/httpfs"
 	"github.com/iineva/ipa-server/pkg/storager"
 	"github.com/iineva/ipa-server/pkg/uuid"
@@ -41,9 +42,11 @@ func main() {
 	storageDir := flag.String("dir", "upload", "upload data storage dir")
 	publicURL := flag.String("public-url", "", "server public url")
 	metadataPath := flag.String("meta-path", "appList.json", "metadata storage path, use random secret path to keep your metadata safer")
-	enabledDelete := flag.Bool("del", false, "delete app enabled")
+	deleteEnabled := flag.Bool("del", false, "delete app enabled")
+	uploadDisabled := flag.Bool("upload-disabled", false, "upload app enabled")
 	remoteCfg := flag.String("remote", "", "remote storager config, s3://ENDPOINT:AK:SK:BUCKET, alioss://ENDPOINT:AK:SK:BUCKET, qiniu://[ZONE]:AK:SK:BUCKET")
 	remoteURL := flag.String("remote-url", "", "remote storager public url, https://cdn.example.com")
+	realm := "My Realm"
 
 	flag.Usage = usage
 	flag.Parse()
@@ -95,9 +98,9 @@ func main() {
 	}
 
 	srv := service.New(store, *publicURL, *metadataPath)
-	basicAuth := service.BasicAuthMiddleware(*user, *pass, "My Realm")
+	basicAuth := service.BasicAuthMiddleware(*user, *pass, realm)
 	listHandler := httptransport.NewServer(
-		basicAuth(service.LoggingMiddleware(logger, "/api/list", *debug)(service.MakeListEndpoint(srv))),
+		basicAuth(service.LoggingMiddleware(logger, "/api/list", *debug)(service.MakeListEndpoint(srv, !*uploadDisabled))),
 		service.DecodeListRequest,
 		service.EncodeJsonResponse,
 		httptransport.ServerBefore(httptransport.PopulateRequestContext),
@@ -108,19 +111,19 @@ func main() {
 		service.EncodeJsonResponse,
 	)
 	addHandler := httptransport.NewServer(
-		basicAuth(service.LoggingMiddleware(logger, "/api/upload", *debug)(service.MakeAddEndpoint(srv))),
+		basicAuth(service.LoggingMiddleware(logger, "/api/upload", *debug)(service.MakeAddEndpoint(srv, !*uploadDisabled))),
 		service.DecodeAddRequest,
 		service.EncodeJsonResponse,
 		httptransport.ServerBefore(httptransport.PopulateRequestContext),
 	)
 	deleteHandler := httptransport.NewServer(
-		basicAuth(service.LoggingMiddleware(logger, "/api/delete", *debug)(service.MakeDeleteEndpoint(srv, *enabledDelete))),
+		basicAuth(service.LoggingMiddleware(logger, "/api/delete", *debug)(service.MakeDeleteEndpoint(srv, *deleteEnabled))),
 		service.DecodeDeleteRequest,
 		service.EncodeJsonResponse,
 		httptransport.ServerBefore(httptransport.PopulateRequestContext),
 	)
 	deleteGetHandler := httptransport.NewServer(
-		service.LoggingMiddleware(logger, "/api/delete/get", *debug)(service.MakeGetDeleteEndpoint(srv, *enabledDelete)),
+		service.LoggingMiddleware(logger, "/api/delete/get", *debug)(service.MakeGetDeleteEndpoint(srv, *deleteEnabled)),
 		service.DecodeDeleteRequest,
 		service.EncodeJsonResponse,
 		httptransport.ServerBefore(httptransport.PopulateRequestContext),
@@ -140,6 +143,21 @@ func main() {
 	serve.Handle("/plist/", plistHandler)
 	// upload file over Websocket
 	serve.Handle("/api/upload/ws", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		if *user != "" {
+			if err := http_basic_auth.HandleBasicAuth(*user, *pass, realm, r); err != nil {
+				logger.Log("msg", fmt.Sprintf("err: %v", err))
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+		}
+
+		if *uploadDisabled {
+			logger.Log("msg", "err: upload was disabled")
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
 		f, err := websocketfile.NewWebsocketFile(w, r)
 		if err != nil {
 			logger.Log("msg", fmt.Sprintf("err: %v", err))
