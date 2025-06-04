@@ -65,7 +65,7 @@ func (i *Item) String() string {
 }
 
 type Service interface {
-	List(publicURL string) ([]*Item, error)
+	List(publicURL string, uploadDisabled bool) (map[string]interface{}, error)
 	Find(id string, publicURL string) (*Item, error)
 	History(id string, publicURL string) ([]*Item, error)
 	Delete(id string) error
@@ -99,7 +99,7 @@ func New(store storager.Storager, publicURL, metadataName string) Service {
 	return s
 }
 
-func (s *service) List(publicURL string) ([]*Item, error) {
+func (s *service) List(publicURL string, uploadDisabled bool) (map[string]interface{}, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 	list := []*Item{}
@@ -118,7 +118,10 @@ func (s *service) List(publicURL string) ([]*Item, error) {
 		item.History = s.history(row, publicURL)
 		list = append(list, item)
 	}
-	return list, nil
+	return map[string]interface{}{
+		"list":           list,
+		"uploadDisabled": uploadDisabled,
+	}, nil
 }
 
 func (s *service) Find(id string, publicURL string) (*Item, error) {

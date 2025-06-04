@@ -37,6 +37,7 @@
         font-size: 1.2em;
         color: #1890ff;
         text-align: center;
+        display: none;
       }
     </style>
   </head>
@@ -108,8 +109,11 @@
       });
 
       function loadList() {
-        IPA.fetch(IPA.getApiUrl("/api/list")).then((list) => {
-          document.querySelector("#list").innerHTML = list
+        IPA.fetch(IPA.getApiUrl("/api/list")).then((resp) => {
+          resp = resp || {};
+          document.querySelector(".add-btn").style.display = resp.uploadDisabled ? 'block' : 'none';
+
+          document.querySelector("#list").innerHTML = (resp.list||[])
             .map((row) => IPA.createItem(row))
             .join("");
 

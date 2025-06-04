@@ -23,6 +23,10 @@ if [ "$DELETE_ENABLED" = "true" -o "$DELETE_ENABLED" = "1" ];then
     ipasd_args=$ipasd_args"-del "
 fi
 
+if [ "$UPLOAD_DISABLED" = "true" -o "$UPLOAD_DISABLED" = "1" ];then
+    ipasd_args=$ipasd_args"-upload-disabled "
+fi
+
 if [ -n "$META_PATH" ];then
     ipasd_args=$ipasd_args"-meta-path $META_PATH "
 fi

@@ -45,10 +45,10 @@ var (
 	ErrIdInvalid = errors.New("id invalid")
 )
 
-func MakeListEndpoint(srv Service) endpoint.Endpoint {
+func MakeListEndpoint(srv Service, uploadDisabled bool) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		p := request.(param)
-		return srv.List(p.publicURL)
+		return srv.List(p.publicURL, uploadDisabled)
 	}
 }
 
@@ -59,8 +59,12 @@ func MakeFindEndpoint(srv Service) endpoint.Endpoint {
 	}
 }
 
-func MakeAddEndpoint(srv Service) endpoint.Endpoint {
+func MakeAddEndpoint(srv Service, uploadDisabled bool) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		if !uploadDisabled {
+			return nil, errors.New("upload was disabled")
+		}
+
 		p := request.(addParam)
 		buf, err := seekbuf.Open(p.file, seekbuf.FileMode)
 		if err != nil {
