@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"image"
 	"path"
 	"path/filepath"
@@ -24,6 +25,8 @@ type AppInfo struct {
 	Type       AppInfoType `json:"type"`
 	// Metadata
 	MetaData map[string]interface{} `json:"metaData"`
+	// store name
+	StorageName string `json:"storageName"`
 }
 
 const (
@@ -73,18 +76,24 @@ type Package interface {
 }
 
 func NewAppInfo(i Package, t AppInfoType) *AppInfo {
+	id := uuid.NewString()
+	channel := i.Channel()
+	if channel != "" {
+		channel = "_" + channel
+	}
 	return &AppInfo{
-		ID:         uuid.NewString(),
-		Name:       i.Name(),
-		Version:    i.Version(),
-		Identifier: i.Identifier(),
-		Build:      i.Build(),
-		Channel:    i.Channel(),
-		MetaData:   i.MetaData(),
-		Date:       time.Now(),
-		Size:       i.Size(),
-		Type:       t,
-		NoneIcon:   i.Icon() == nil,
+		ID:          id,
+		Name:        i.Name(),
+		Version:     i.Version(),
+		Identifier:  i.Identifier(),
+		Build:       i.Build(),
+		Channel:     i.Channel(),
+		MetaData:    i.MetaData(),
+		Date:        time.Now(),
+		Size:        i.Size(),
+		Type:        t,
+		NoneIcon:    i.Icon() == nil,
+		StorageName: fmt.Sprintf("%s_%s(%s)%s_%s%s", i.Identifier(), i.Version(), i.Build(), channel, id, t.StorageName()),
 	}
 }
 
@@ -96,5 +105,8 @@ func (a *AppInfo) IconStorageName() string {
 }
 
 func (a *AppInfo) PackageStorageName() string {
+	if a.StorageName != "" {
+		return a.StorageName
+	}
 	return filepath.Join(a.Identifier, a.ID+a.Type.StorageName())
 }
