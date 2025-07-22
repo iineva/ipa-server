@@ -21,13 +21,13 @@ var (
 	ErrInfoPlistNotFound = errors.New("Info.plist not found")
 )
 
-const (
+var (
 	// Payload/UnicornApp.app/AppIcon_TikTok76x76@2x~ipad.png
 	// Payload/UnicornApp.app/AppIcon76x76.png
-	newIconRegular   = `^Payload\/.*\.app\/AppIcon-?_?\w*(\d+(\.\d+)?)x(\d+(\.\d+)?)(@\dx)?(~ipad)?\.png$`
-	oldIconRegular   = `^Payload\/.*\.app\/Icon-?_?\w*(\d+(\.\d+)?)?.png$`
-	assetRegular     = `^Payload\/.*\.app/Assets.car$`
-	infoPlistRegular = `^Payload\/.*\.app/Info.plist$`
+	newIconRegular   = regexp.MustCompile(`^Payload\/.*\.app\/AppIcon-?_?\w*(\d+(\.\d+)?)x(\d+(\.\d+)?)(@\dx)?(~ipad)?\.png$`)
+	oldIconRegular   = regexp.MustCompile(`^Payload\/.*\.app\/Icon-?_?\w*(\d+(\.\d+)?)?.png$`)
+	assetRegular     = regexp.MustCompile(`^Payload\/.*\.app/Assets.car$`)
+	infoPlistRegular = regexp.MustCompile(`^Payload\/.*\.app/Info.plist$`)
 )
 
 // TODO: use InfoPlistIcon to parse icon files
@@ -68,34 +68,22 @@ func Parse(readerAt io.ReaderAt, size int64) (*IPA, error) {
 	for _, f := range r.File {
 
 		// parse Info.plist
-		match, err := regexp.MatchString(infoPlistRegular, f.Name)
-		{
-			if err != nil {
-				return nil, err
-			}
-			if match {
-				plistFile = f
-			}
+		if infoPlistRegular.MatchString(f.Name) {
+			plistFile = f
 		}
 
 		// parse old icons
-		if match, err = regexp.MatchString(oldIconRegular, f.Name); err != nil {
-			return nil, err
-		} else if match {
+		if oldIconRegular.MatchString(f.Name) {
 			iconFiles = append(iconFiles, f)
 		}
 
 		// parse new icons
-		if match, err = regexp.MatchString(newIconRegular, f.Name); err != nil {
-			return nil, err
-		} else if match {
+		if newIconRegular.MatchString(f.Name) {
 			iconFiles = append(iconFiles, f)
 		}
 
 		// parse Assets.car
-		if match, err = regexp.MatchString(assetRegular, f.Name); err != nil {
-			return nil, err
-		} else if match {
+		if assetRegular.MatchString(f.Name) {
 			assetFile = f
 		}
 
@@ -108,10 +96,10 @@ func Parse(readerAt io.ReaderAt, size int64) (*IPA, error) {
 	var app *IPA
 	{
 		pf, err := plistFile.Open()
-		defer pf.Close()
 		if err != nil {
 			return nil, err
 		}
+		defer pf.Close()
 		info := &InfoPlist{}
 		err = plist.Decode(pf, info)
 		if err != nil {
@@ -129,12 +117,16 @@ func Parse(readerAt io.ReaderAt, size int64) (*IPA, error) {
 	for _, f := range iconFiles {
 		size, err := iconSize(f.Name)
 		if err != nil {
-			return nil, err
+			continue
 		}
 		if size > maxSize {
 			maxSize = size
 			iconFile = f
 		}
+	}
+	// if can't find bigest one, just first one.
+	if iconFile == nil && len(iconFiles) > 0 {
+		iconFile = iconFiles[0]
 	}
 	// parse icon
 	img, err := parseIconImage(iconFile)
@@ -151,9 +143,8 @@ func Parse(readerAt io.ReaderAt, size int64) (*IPA, error) {
 
 func iconSize(fileName string) (s int, err error) {
 	size := float64(0)
-	match, _ := regexp.MatchString(oldIconRegular, fileName)
 	name := strings.TrimSuffix(filepath.Base(fileName), ".png")
-	if match {
+	if oldIconRegular.MatchString(fileName) {
 		arr := strings.Split(name, "-")
 		if len(arr) == 2 {
 			size, err = strconv.ParseFloat(arr[1], 32)
@@ -161,15 +152,14 @@ func iconSize(fileName string) (s int, err error) {
 			size = 160
 		}
 	}
-	match, _ = regexp.MatchString(newIconRegular, fileName)
-	if match {
+	if newIconRegular.MatchString(fileName) {
 		s := strings.Split(name, "@")[0]
 		s = strings.Split(s, "x")[1]
 		s = strings.Split(s, "~")[0]
 		size, err = strconv.ParseFloat(s, 32)
-		if strings.Index(name, "@2x") != -1 {
+		if strings.Contains(name, "@2x") {
 			size *= 2
-		} else if strings.Index(name, "@3x") != -1 {
+		} else if strings.Contains(name, "@3x") {
 			size *= 3
 		}
 	}
