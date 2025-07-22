@@ -234,7 +234,7 @@
             )
             // if (needGoAppPage) {
             if (false) {
-                return `goToLink(null, '/app?id=${row.id}')`
+                return `goToLink(null, '/app/?id=${row.id}')`
             }
 
             if (row.type == 0) {
@@ -255,7 +255,7 @@
             });
             icons.sort().reverse()
             return `
-      <a class='row' onclick="${row.current ? '' : `goToLink(event, '/app?id=${row.id}')`}">
+      <a class='row' onclick="${row.current ? '' : `goToLink(event, '/app/?id=${row.id}')`}">
         <img data-normal="${row.webIcon}" alt="">
         <div class="center">
           <div class="name">
