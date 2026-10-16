@@ -1,8 +1,9 @@
 #!/bin/sh
 set -eu
 
-set -- -addr 0.0.0.0 \
-  -port "${PORT:-8080}"
+PORT="${PORT:-10000}"
+
+set -- -addr 0.0.0.0 -port "$PORT"
 
 PUBLIC_URL="${PUBLIC_URL:-${DOMAIN:-}}"
 
@@ -18,13 +19,13 @@ if [ -n "${REMOTE_URL:-}" ]; then
   set -- "$@" -remote-url "$REMOTE_URL"
 fi
 
-case "${DELETE_ENABLED:-false}" in
-  true|1) set -- "$@" -del ;;
-esac
+if [ "${DELETE_ENABLED:-false}" = "true" ] || [ "${DELETE_ENABLED:-false}" = "1" ]; then
+  set -- "$@" -del
+fi
 
-case "${UPLOAD_DISABLED:-false}" in
-  true|1) set -- "$@" -upload-disabled ;;
-esac
+if [ "${UPLOAD_DISABLED:-false}" = "true" ] || [ "${UPLOAD_DISABLED:-false}" = "1" ]; then
+  set -- "$@" -upload-disabled
+fi
 
 if [ -n "${META_PATH:-}" ]; then
   set -- "$@" -meta-path "$META_PATH"
@@ -37,5 +38,9 @@ fi
 if [ -n "${LOGIN_PASS:-}" ]; then
   set -- "$@" -pass "$LOGIN_PASS"
 fi
+
+printf 'Starting ipa-server with arguments:'
+printf ' <%s>' "$@"
+printf '\n'
 
 exec /app/ipasd "$@"
