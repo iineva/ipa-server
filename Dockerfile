@@ -1,5 +1,5 @@
 # builder
-FROM --platform=$TARGETPLATFORM golang:1.22.6 AS builder
+FROM golang:1.22.6 AS builder
 
 WORKDIR /src/
 
