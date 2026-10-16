@@ -46,3 +46,5 @@ jobs:
           tags: |
             ghcr.io/${{ env.IMAGE_NAME }}:latest
             ghcr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=gha,scope=ipa-server
+          cache-to: type=gha,scope=ipa-server,mode=max
