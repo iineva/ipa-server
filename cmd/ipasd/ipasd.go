@@ -100,7 +100,7 @@ func main() {
 	srv := service.New(store, *publicURL, *metadataPath)
 	basicAuth := service.BasicAuthMiddleware(*user, *pass, realm)
 	listHandler := httptransport.NewServer(
-		basicAuth(service.LoggingMiddleware(logger, "/api/list", *debug)(service.MakeListEndpoint(srv, !*uploadDisabled))),
+		service.LoggingMiddleware(logger, "/api/list", *debug)(service.MakeListEndpoint(srv, !*uploadDisabled)),
 		service.DecodeListRequest,
 		service.EncodeJsonResponse,
 		httptransport.ServerBefore(httptransport.PopulateRequestContext),
