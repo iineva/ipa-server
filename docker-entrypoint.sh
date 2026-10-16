@@ -1,42 +1,42 @@
 #!/bin/sh
+set -eu
 
-ipasd_args=""
+PORT="${PORT:-10000}"
 
-if [ -n "$PORT" ];then
-    ipasd_args=$ipasd_args"-port $PORT "
+set -- -addr 0.0.0.0 -port "$PORT"
+
+PUBLIC_URL="${PUBLIC_URL:-${DOMAIN:-}}"
+
+if [ -n "$PUBLIC_URL" ]; then
+  set -- "$@" -public-url "$PUBLIC_URL"
 fi
 
-PUBLIC_URL=${PUBLIC_URL:-$DOMAIN}
-if [ -n "$PUBLIC_URL" ];then
-    ipasd_args=$ipasd_args"-public-url $PUBLIC_URL "
+if [ -n "${REMOTE:-}" ]; then
+  set -- "$@" -remote "$REMOTE"
 fi
 
-if [ -n "$REMOTE" ];then
-    ipasd_args=$ipasd_args"-remote $REMOTE "
+if [ -n "${REMOTE_URL:-}" ]; then
+  set -- "$@" -remote-url "$REMOTE_URL"
 fi
 
-if [ -n "$REMOTE_URL" ];then
-    ipasd_args=$ipasd_args"-remote-url $REMOTE_URL "
+if [ "${DELETE_ENABLED:-false}" = "true" ] || [ "${DELETE_ENABLED:-false}" = "1" ]; then
+  set -- "$@" -del
 fi
 
-if [ "$DELETE_ENABLED" = "true" -o "$DELETE_ENABLED" = "1" ];then
-    ipasd_args=$ipasd_args"-del "
+if [ "${UPLOAD_DISABLED:-false}" = "true" ] || [ "${UPLOAD_DISABLED:-false}" = "1" ]; then
+  set -- "$@" -upload-disabled
 fi
 
-if [ "$UPLOAD_DISABLED" = "true" -o "$UPLOAD_DISABLED" = "1" ];then
-    ipasd_args=$ipasd_args"-upload-disabled "
+if [ -n "${META_PATH:-}" ]; then
+  set -- "$@" -meta-path "$META_PATH"
 fi
 
-if [ -n "$META_PATH" ];then
-    ipasd_args=$ipasd_args"-meta-path $META_PATH "
+if [ -n "${LOGIN_USER:-}" ]; then
+  set -- "$@" -user "$LOGIN_USER"
 fi
 
-if [ -n "$LOGIN_USER" ];then
-    ipasd_args=$ipasd_args"-user $LOGIN_USER "
+if [ -n "${LOGIN_PASS:-}" ]; then
+  set -- "$@" -pass "$LOGIN_PASS"
 fi
 
-if [ -n "$LOGIN_PASS" ];then
-    ipasd_args=$ipasd_args"-pass $LOGIN_PASS "
-fi
-
-/app/ipasd $ipasd_args
+exec /app/ipasd "$@"
