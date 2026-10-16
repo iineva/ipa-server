@@ -39,8 +39,4 @@ if [ -n "${LOGIN_PASS:-}" ]; then
   set -- "$@" -pass "$LOGIN_PASS"
 fi
 
-printf 'Starting ipa-server with arguments:'
-printf ' <%s>' "$@"
-printf '\n'
-
 exec /app/ipasd "$@"
